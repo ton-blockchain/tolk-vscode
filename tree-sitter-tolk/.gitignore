@@ -1,0 +1,4 @@
+tree-sitter-tolk.wasm
+bindings/rust
+Cargo.toml
+tmp.tolk
