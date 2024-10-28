@@ -3,7 +3,6 @@
 'use strict';
 
 const path = require('path');
-const webpack = require('webpack');
 const CopyPlugin = require("copy-webpack-plugin");
 
 
@@ -55,7 +54,8 @@ const config = {
     new CopyPlugin({
       patterns: [
         { from: "./node_modules/web-tree-sitter/tree-sitter.wasm", to: distDir },
-       { from: "./server/tree-sitter-func.wasm", to: distDir },
+        { from: "./server/tree-sitter-tolk.wasm", to: distDir },
+        { from: "./ton-icon.svg", to: distDir },
       ],
     }),
   ],

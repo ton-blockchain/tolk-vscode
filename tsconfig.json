@@ -3,7 +3,8 @@
 		"module": "commonjs",
 		"target": "es2020",
 		"lib": ["es2020"],
-		"sourceMap": true
+		"sourceMap": true,
+		"strict": true
 	},
 	"include": [
 		"src"

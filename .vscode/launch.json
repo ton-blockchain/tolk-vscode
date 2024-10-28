@@ -11,18 +11,15 @@
             "skipFiles": [
                 "<node_internals>/**"
             ],
-            "type": "pwa-node"
+            "type": "node"
         },
     {
         "args": [
             "--extensionDevelopmentPath=${workspaceFolder}"
         ],
         "name": "Launch Extension",
-        "outFiles": [
-            "${workspaceFolder}/out/**/*.js"
-        ],
         "request": "launch",
-        "type": "pwa-extensionHost"
+        "type": "extensionHost"
     }
     ]
 }

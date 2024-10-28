@@ -1,4 +1,4 @@
-import { crc32 } from './crc32'
+import { crc32 } from '../src/utils/crc32'
 
 describe('crc32', () => {
   it.each([

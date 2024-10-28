@@ -1,10 +1,11 @@
 import { LRUMap } from './utils/lruMap';
 import * as lsp from 'vscode-languageserver';
 import * as Parser from 'web-tree-sitter';
-import { Disposable, Position } from 'vscode-languageserver';
+import { Disposable } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { DocumentStore, TextDocumentChange2 } from './documentStore';
+import { DocumentStore } from './document-store';
 import { createParser } from './parser';
+import { asParserPoint } from './utils/position'
 
 class Entry {
   constructor(
@@ -15,14 +16,14 @@ class Entry {
   }
 }
 
-export type ParseDone = {
+type ParseDone = {
   tree: Parser.Tree,
   document: TextDocument
 }
 
 export class Trees {
 
-  private readonly _cache = new LRUMap<string, Entry>({
+  private readonly _cachedParserTrees = new LRUMap<string, Entry>({
     size: 200,
     dispose(entries) {
       for (let [, value] of entries) {
@@ -38,16 +39,23 @@ export class Trees {
 
   constructor(private readonly _documents: DocumentStore) {
     // build edits when document changes
-    this._listener.push(_documents.onDidChangeContent2(e => {
-      const info = this._cache.get(e.document.uri);
+    this._listener.push(_documents.onDidChangeContent2(event => {
+      const info = this._cachedParserTrees.get(event.document.uri);
       if (info) {
-        info.edits.push(Trees._asEdits(e));
+        info.edits.push(event.changes.map(change => ({
+          startPosition: asParserPoint(change.range.start),
+          oldEndPosition: asParserPoint(change.range.end),
+          newEndPosition: asParserPoint(event.document.positionAt(change.rangeOffset + change.text.length)),
+          startIndex: change.rangeOffset,
+          oldEndIndex: change.rangeOffset + change.rangeLength,
+          newEndIndex: change.rangeOffset + change.text.length
+        })));
       }
     }));
   }
 
   dispose(): void {
-    for (let item of this._cache.values()) {
+    for (let item of this._cachedParserTrees.values()) {
       item.tree.delete();
     }
     for (let item of this._listener) {
@@ -62,31 +70,28 @@ export class Trees {
   getParseTree(documentOrUri: TextDocument | string): Promise<Parser.Tree | undefined> | Parser.Tree | undefined {
     if (typeof documentOrUri === 'string') {
       return this._documents.retrieve(documentOrUri).then(doc => {
-        if (!doc.exists) {
-          return undefined;
-        }
-        return this._parse(doc.document);
+        return doc && this._parse(doc);
       });
     } else {
       return this._parse(documentOrUri);
     }
   }
 
-  private _parse(documentOrUri: TextDocument): Parser.Tree | undefined {
-    let info = this._cache.get(documentOrUri.uri);
-    if (info?.version === documentOrUri.version) {
+  private _parse(document: TextDocument): Parser.Tree | undefined {
+    let info = this._cachedParserTrees.get(document.uri);
+    if (info?.version === document.version) {
       return info.tree;
     }
 
     try {
-      const version = documentOrUri.version;
-      const text = documentOrUri.getText();
+      const version = document.version;
+      const text = document.getText();
 
       if (!info) {
         // never seen before, parse fresh
         const tree = this._parser.parse(text);
         info = new Entry(version, tree, []);
-        this._cache.set(documentOrUri.uri, info);
+        this._cachedParserTrees.set(document.uri, info);
 
       } else {
         // existing entry, apply deltas and parse incremental
@@ -101,31 +106,15 @@ export class Trees {
       }
 
       this._onParseDone.fire({
-        document: documentOrUri,
+        document: document,
         tree: info.tree
       })
 
       return info.tree;
 
     } catch (e) {
-      this._cache.delete(documentOrUri.uri);
+      this._cachedParserTrees.delete(document.uri);
       return undefined;
     }
   }
-
-  private static _asEdits(event: TextDocumentChange2): Parser.Edit[] {
-    return event.changes.map(change => ({
-      startPosition: this._asTsPoint(change.range.start),
-      oldEndPosition: this._asTsPoint(change.range.end),
-      newEndPosition: this._asTsPoint(event.document.positionAt(change.rangeOffset + change.text.length)),
-      startIndex: change.rangeOffset,
-      oldEndIndex: change.rangeOffset + change.rangeLength,
-      newEndIndex: change.rangeOffset + change.text.length
-    }));
-  }
-
-  private static _asTsPoint(position: Position): Parser.Point {
-    const { line: row, character: column } = position;
-    return { row, column };
-  }
-};
+}

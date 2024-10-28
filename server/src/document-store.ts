@@ -3,6 +3,7 @@ import * as lsp from 'vscode-languageserver';
 import { TextDocuments } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { LRUMap } from './utils/lruMap';
+import { NotificationFromClient, RequestFromServer } from "./shared-msgtypes";
 
 export interface TextDocumentChange2 {
   document: TextDocument,
@@ -14,15 +15,13 @@ export interface TextDocumentChange2 {
   }[]
 }
 
-type DocumentEntry = { exists: true, document: TextDocument } | { exists: false, document: undefined };
-
 export class DocumentStore extends TextDocuments<TextDocument> {
 
   private readonly _onDidChangeContent2 = new lsp.Emitter<TextDocumentChange2>();
   readonly onDidChangeContent2 = this._onDidChangeContent2.event;
 
   private readonly _decoder = new TextDecoder();
-  private readonly _fileDocuments: LRUMap<string, Promise<DocumentEntry>>;
+  private readonly _fileDocuments: LRUMap<string, Promise<TextDocument | undefined>>;
 
   constructor(private readonly _connection: lsp.Connection) {
     super({
@@ -53,7 +52,7 @@ export class DocumentStore extends TextDocuments<TextDocument> {
       }
     });
 
-    this._fileDocuments = new LRUMap<string, Promise<DocumentEntry>>({
+    this._fileDocuments = new LRUMap<string, Promise<TextDocument | undefined>>({
       size: 200,
       dispose: _entries => {
       }
@@ -61,29 +60,29 @@ export class DocumentStore extends TextDocuments<TextDocument> {
 
     super.listen(_connection);
 
-    _connection.onNotification('file-cache/remove', uri => this._fileDocuments.delete(uri));
+    _connection.onNotification(NotificationFromClient.removeFileFromFileCache, uri => this._fileDocuments.delete(uri));
   }
 
-  async retrieve(uri: string): Promise<DocumentEntry> {
-    let result = this.get(uri);
+  async retrieve(documentUri: string): Promise<TextDocument | undefined> {
+    let result = this.get(documentUri)
     if (result) {
-      return { exists: true, document: result };
+      return result;
     }
-    let promise = this._fileDocuments.get(uri);
+    let promise = this._fileDocuments.get(documentUri);
     if (!promise) {
-      promise = this._requestDocument(uri);
-      this._fileDocuments.set(uri, promise);
+      promise = this._requestDocument(documentUri);
+      this._fileDocuments.set(documentUri, promise);
     }
     return promise;
   }
 
-  private async _requestDocument(uri: string): Promise<DocumentEntry> {
-    const reply = await this._connection.sendRequest<{ type: 'Buffer', data: any } | { type: 'not-found' }>('file/read', uri);
+  private async _requestDocument(uri: string): Promise<TextDocument | undefined> {
+    const reply = await this._connection.sendRequest<{ type: 'Buffer', data: any } | { type: 'not-found' }>(RequestFromServer.fileReadContents, uri);
     if (reply.type === 'not-found') {
-      return { exists: false, document: undefined };
+      return undefined;
     }
     let decoded = this._decoder.decode(new Uint8Array(reply.data));
-    return { exists: true, document: TextDocument.create(uri, 'func', 1, decoded) };
+    return TextDocument.create(uri, 'tolk', 1, decoded);
   }
 
 }
