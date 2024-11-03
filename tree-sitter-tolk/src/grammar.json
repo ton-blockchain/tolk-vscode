@@ -539,8 +539,12 @@
           "type": "CHOICE",
           "members": [
             {
-              "type": "STRING",
-              "value": "mutate"
+              "type": "FIELD",
+              "name": "modifiers",
+              "content": {
+                "type": "STRING",
+                "value": "mutate"
+              }
             },
             {
               "type": "BLANK"
@@ -2473,4 +2477,3 @@
   "inline": [],
   "supertypes": []
 }
-

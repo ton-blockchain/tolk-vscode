@@ -116,7 +116,7 @@ const TOLK_GRAMMAR = {
     ')'
   ),
   parameter_declaration: $ => seq(
-    optional('mutate'),
+    optional(field('modifiers', 'mutate')),
     field('name', $.identifier),
     optional(seq(
       ':',
