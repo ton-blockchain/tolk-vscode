@@ -7,6 +7,7 @@ export interface TolkLocalVariable {
   node: Parser.SyntaxNode,
   name: string
   type: TolkType,
+  mutate: boolean, // if parameter has `mutate` keyword
 }
 
 export function findLocalVariables(rootNode: Parser.SyntaxNode, cursorPosition: Parser.Point): TolkLocalVariable[] {
@@ -26,7 +27,8 @@ export function findLocalVariables(rootNode: Parser.SyntaxNode, cursorPosition: 
                 kind: 'variable',
                 node: nameNode,
                 name: extractNameFromNode(nameNode),
-                type: extractType(potentialVarNode.childForFieldName('type'))
+                type: extractType(potentialVarNode.childForFieldName('type')),
+                mutate: false
               })
           }
         }
@@ -42,7 +44,8 @@ export function findLocalVariables(rootNode: Parser.SyntaxNode, cursorPosition: 
             kind: 'parameter',
             node: nameNode,
             name: extractNameFromNode(nameNode),
-            type: extractType(paramNode.childForFieldName('type'))
+            type: extractType(paramNode.childForFieldName('type')),
+            mutate: paramNode.childForFieldName('modifiers') !== null
           })
         }
       }

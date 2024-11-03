@@ -882,6 +882,16 @@
     "type": "parameter_declaration",
     "named": true,
     "fields": {
+      "modifiers": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "mutate",
+            "named": false
+          }
+        ]
+      },
       "name": {
         "multiple": false,
         "required": true,

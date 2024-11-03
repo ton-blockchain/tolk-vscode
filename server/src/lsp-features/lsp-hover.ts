@@ -9,6 +9,7 @@ import { ILspHandler } from '../connection'
 import { findLocalVariables, TolkLocalVariable } from './find-locals'
 import { stringifyType } from './type-inference'
 import { extractNameFromNode, TolkDocumentSymbol } from './lsp-document-symbols'
+import { MarkupKind } from "vscode-languageserver";
 
 export class HoverLspHandler implements ILspHandler {
   constructor(
@@ -76,11 +77,12 @@ export class HoverLspHandler implements ILspHandler {
   }
 
   private stringifyLocalVariable(symbol: TolkLocalVariable): string {
+    const mutability = symbol.mutate ? 'mutable ' : ''
     const strVal = symbol.kind === 'parameter' ? 'param ' : 'var '
     if (symbol.type.kind === 'auto' || symbol.type.kind === 'function') {
       // return strVal + symbol.name
     }
-    return strVal + symbol.name + ': ' + stringifyType(symbol.type)
+    return mutability + strVal + symbol.name + ': ' + stringifyType(symbol.type)
   }
 
   private stringifyGlobalSymbol(symbol: TolkDocumentSymbol): string {
