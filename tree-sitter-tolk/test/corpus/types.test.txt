@@ -1,0 +1,49 @@
+===
+Parse simple types
+===
+
+global g: int;
+global g: (slice, int);
+global g: [slice, (tuple)];
+
+---
+(source_file
+  (global_var_declaration
+    (identifier)
+    (primitive_type))
+  (global_var_declaration
+    (identifier)
+    (tensor_type (primitive_type) (primitive_type)))
+  (global_var_declaration
+    (identifier)
+    (tuple_type (primitive_type) (parenthesized_type (primitive_type))))
+)
+
+===
+Parse callable types
+===
+
+global g: () -> void;
+global g: int -> [slice];
+global g: (int) -> (cell, builder) -> [[slice]];
+
+---
+(source_file
+  (global_var_declaration
+    (identifier)
+    (fun_callable_type
+      (tensor_type)
+      (void_type)))
+  (global_var_declaration
+    (identifier)
+    (fun_callable_type
+      (primitive_type)
+      (tuple_type (primitive_type))))
+  (global_var_declaration
+    (identifier)
+    (fun_callable_type
+      (parenthesized_type (primitive_type))
+      (fun_callable_type
+        (tensor_type (primitive_type) (primitive_type))
+        (tuple_type (tuple_type (primitive_type))))))
+)

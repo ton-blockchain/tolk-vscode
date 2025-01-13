@@ -3,6 +3,11 @@
 Historically, tolk-vscode has been cloned from [vscode-func](https://github.com/tonwhales/vscode-func)
 and completely refactored.
 
+## [0.7.0] - 2025-01-13
+
+* Support Tolk v0.7 (`bool` type, `as` operator, generics instantiations `f<int>`)
+* Rewritten tree-sitter grammar to a modern way
+
 ## [0.6.0] - 2024-11-01
 
 * First public release, supporting all Tolk v0.6 grammar and Tolk SDK auto-detection.

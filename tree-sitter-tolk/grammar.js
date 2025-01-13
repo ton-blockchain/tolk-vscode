@@ -14,7 +14,7 @@ function commaSep2(rule) {
 }
 
 const TOLK_GRAMMAR = {
-  translation_unit: $ => repeat($._top_level_declaration),
+  source_file: $ => repeat($._top_level_declaration),
 
   // ----------------------------------------------------------
   // top-level declarations
@@ -56,7 +56,7 @@ const TOLK_GRAMMAR = {
       field('type', $._type_hint),
     )),
     '=',
-    field('value', $.expression),
+    field('value', $._expression),
     ';'
   ),
 
@@ -67,7 +67,7 @@ const TOLK_GRAMMAR = {
     optional(field('annotations', $.annotation_list)),
     'fun',
     field('name', $.identifier),
-    optional(field('genericsT', $.genericsT_list)),
+    optional(field('genericTs', $.genericT_list)),
     field('parameters', $.parameter_list),
     optional(seq(
       ':',
@@ -98,13 +98,13 @@ const TOLK_GRAMMAR = {
     field('name', $.annotation_name),
     optional(seq(
       '(',
-      repeat($.expression),
+      repeat($._expression),
       ')'
     ))
   ),
   annotation_name: $ => /\w+/,
 
-  genericsT_list: $ => seq(
+  genericT_list: $ => seq(
     '<',
     commaSep($.identifier),
     '>'
@@ -144,7 +144,7 @@ const TOLK_GRAMMAR = {
   // ----------------------------------------------------------
   // statements
 
-  statement: $ => choice(
+  _statement: $ => choice(
     $.local_vars_declaration,
     $.block_statement,
     $.return_statement,
@@ -165,7 +165,7 @@ const TOLK_GRAMMAR = {
     choice('var', 'val'),
     field('lhs', $.var_declaration_lhs),
     '=',
-    field('assigned_val', $.expression),
+    field('assigned_val', $._expression),
     ';'
   ),
   var_declaration_lhs: $ => choice(
@@ -182,31 +182,28 @@ const TOLK_GRAMMAR = {
 
   block_statement: $ => seq(
     '{',
-    repeat($.statement),
+    repeat($._statement),
     '}'
   ),
 
   return_statement: $ => seq(
     'return',
-    optional(field('body', $.expression)),
+    optional(field('body', $._expression)),
     ';'
   ),
 
   repeat_statement: $ => seq(
     'repeat',
     '(',
-    field('count', $.expression),
+    field('count', $._expression),
     ')',
     field('body', $.block_statement)
   ),
 
   if_statement: $ => seq(
-    choice('if', 'ifnot'),
-    $._if_statement_contents,
-  ),
-  _if_statement_contents: $ => seq(
+    'if',
     '(',
-    field('condition', $.expression),
+    field('condition', $._expression),
     ')',
     field('body', $.block_statement),
     field('alternative', optional(choice(
@@ -220,7 +217,7 @@ const TOLK_GRAMMAR = {
     field('body', $.block_statement),
     'while',
     '(',
-    field('condition', $.expression),
+    field('condition', $._expression),
     ')',
     ';'
   ),
@@ -228,7 +225,7 @@ const TOLK_GRAMMAR = {
   while_statement: $ => seq(
     'while',
     '(',
-    field('condition', $.expression),
+    field('condition', $._expression),
     ')',
     field('body', $.block_statement)
   ),
@@ -238,15 +235,15 @@ const TOLK_GRAMMAR = {
 
   throw_statement: $ => seq(
     'throw',
-    $.expression,   // excNo, (excNo), (excNo, arg); but (1,2,3) will be also acceptable
+    $._expression,   // excNo, (excNo), (excNo, arg); but (1,2,3) will be also acceptable
     ';'
   ),
 
   assert_statement: $ => seq(
     'assert',
     choice(
-      seq('(', field('condition', $.expression), ')', 'throw', field('excNo', $.expression)),
-      seq('(', field('condition', $.expression), ',', field('excNo', $.expression), ')')
+      seq('(', field('condition', $._expression), ')', 'throw', field('excNo', $._expression)),
+      seq('(', field('condition', $._expression), ',', field('excNo', $._expression), ')')
     ),
     ';'
   ),
@@ -269,101 +266,85 @@ const TOLK_GRAMMAR = {
 
   empty_statement: $ => ';',
 
-  expression_statement: $ => seq($.expression, ';'),
+  expression_statement: $ => seq($._expression, ';'),
 
   // ----------------------------------------------------------
   // expressions
 
-  expression: $ => $._expr10,
+  _expression: $ => choice(
+    $.assignment,
+    $.set_assignment,
+    $.ternary_operator,
+    $.binary_operator,
+    $.unary_operator,
+    $.cast_as_operator,
+    $.dot_access,
+    $.function_call,
+    $.generic_instantiation,
+    $.parenthesized_expression,
+    $.tensor_expression,
+    $.typed_tuple,
+    $.number_literal,
+    $.string_literal,
+    $.boolean_literal,
+    $.null_literal,
+    $.underscore,
+    $.identifier,
+  ),
 
-  _expr10: $ => prec.right(10, seq(
-    $._expr13,
-    optional(choice(
-      seq(
-        choice('=', '+=', '-=', '*=', '/=', '%=', '<<=', '>>=', '&=', '|=', '^='),
-        $._expr10
-      ),
-      seq(
-        '?',
-        $._expr10,
-        ':',
-        $._expr10
-      )
-    )),
+  assignment: $ => prec.right(10, seq(
+    $._expression,
+    '=',
+    $._expression
   )),
 
-  _expr13: $ => prec.left(13, seq(
-    $._expr14,
-    repeat(seq(
-      choice('&&', '||'),
-      $._expr14,
-    ))
+  set_assignment: $ => prec.right(10, seq(
+    $._expression,
+    field('operator_name', choice('+=', '-=', '*=', '/=', '%=', '<<=', '>>=', '&=', '|=', '^=')),
+    $._expression
   )),
 
-  _expr14: $ => prec.left(14, seq(
-    $._expr15,
-    repeat(seq(
-      choice('&', '|', '^'),
-      $._expr15,
-    ))
+  ternary_operator: $ => prec.right(10, seq(
+    $._expression,
+    '?',
+    $._expression,
+    ':',
+    $._expression
   )),
 
-  _expr15: $ => prec.left(15, seq(
-    $._expr17,
-    optional(seq(
-      choice('==', '<', '>', '<=', '>=', '!=', '<=>'),
-      $._expr17
-    ))
+  _brackets_lt_gt: _ => choice("<", ">"),   // extracted specially to resolve conflicts between `<` and `f<int>`
+  _comparison_lt_gt: $ => prec.left(15, seq($._expression, field('operator_name', $._brackets_lt_gt), $._expression)),
+
+  binary_operator: $ => choice(
+    prec.left(13, seq($._expression, field('operator_name', choice('&&', '||')), $._expression)),
+    prec.left(14, seq($._expression, field('operator_name', choice('&', '|', '^')), $._expression)),
+    prec.left(15, seq($._expression, field('operator_name', choice('==', '!=', '<=', '>=', '<=>')), $._expression)),
+    $._comparison_lt_gt,
+    prec.left(17, seq($._expression, field('operator_name', choice('<<', '>>', '~>>', '^>>')), $._expression)),
+    prec.left(20, seq($._expression, field('operator_name', choice('-', '+')), $._expression)),
+    prec.left(30, seq($._expression, field('operator_name', choice('*', '/', '%', '~/', '^/')), $._expression)),
+  ),
+
+  unary_operator: $ => choice(
+    prec.left(75, seq(field('operator_name', choice('!', '~', '-', '+')), $._expression)),
+  ),
+
+  cast_as_operator: $ => prec(40, seq(
+    $._expression,
+    'as',
+    field('casted_to', $._type_hint)
   )),
 
-  _expr17: $ => prec.left(17, seq(
-    $._expr20,
-    repeat(seq(
-      choice('<<', '>>', '~>>', '^>>'),
-      $._expr20
-    ))
-  )),
-
-  _expr20: $ => prec.left(20, seq(
-    $._expr30,
-    repeat(seq(
-      choice('-', '+'),
-      $._expr30
-    ))
-  )),
-
-  _expr30: $ => prec.left(30, seq(
-    $._expr75,
-    repeat(seq(
-      choice('*', '/', '%', '~/', '^/'),
-      $._expr75
-    ))
-  )),
-
-  _expr75: $ => prec(75, choice(
-    seq(choice('!', '~', '-', '+'), $._expr75),
-    $._expr80
-  )),
-
-  _expr80: $ => prec.left(80, seq(
-    $._expr90,
-    repeat($.dot_method_call)
-  )),
-  dot_method_call: $ => seq(
+  dot_access: $ => prec(80, seq(
+    field('obj', $._expression),
     '.',
-    field('method_name', $.identifier),
-    field('arguments', $.argument_list)
-  ),
-
-  _expr90: $ => prec.left(90, choice(
-    $._expr100,
-    $.function_call
+    field('field', $.identifier)    // for method call, dot_access is wrapped into function_call, "field" actually means method name
   )),
-  function_call: $ => seq(
-    field('called_f', $._expr100),
-    field('arguments', $.argument_list)
-  ),
 
+  function_call: $ => prec.left(90, seq(
+    field('callee', $._expression), // callee can be generic_instantiation or dot_access
+    field('arguments', $.argument_list)
+  )),
   argument_list: $ => seq(
     '(',
     commaSep($.call_argument),
@@ -371,61 +352,46 @@ const TOLK_GRAMMAR = {
   ),
   call_argument: $ => seq(
     optional('mutate'),
-    field('expr', $.expression)
+    field('expr', $._expression)
   ),
 
-  _expr100: $ => prec(100, choice(
-    $.parenthesized_expression,
-    $.tensor_expression,
-    $.tensor_square,
-    $.number_literal,
-    $.string_literal,
-    $.boolean_literal,
-    $.null_literal,
-    $.underscore,
-    $.identifier,
+  generic_instantiation: $ => prec(10, seq(
+    field('expr', $._expression),
+    field('instantiationTs', $.instantiationT_list)
   )),
-  parenthesized_expression: $ => seq('(', $.expression, ')'),
-  tensor_expression: $ => choice(seq('(', ')'), seq('(', commaSep2($.expression), ')')),
-  tensor_square: $ => seq('[', commaSep($.expression), ']'),
+  instantiationT_list: $ => prec.dynamic(1, seq(  // prec.dynamic is important
+    '<',
+    commaSep1($._type_hint),
+    '>'
+  )),
+
+  parenthesized_expression: $ => seq('(', $._expression, ')'),
+  tensor_expression: $ => choice(seq('(', ')'), seq('(', commaSep2($._expression), ')')),
+  typed_tuple: $ => seq('[', commaSep($._expression), ']'),
 
   // ----------------------------------------------------------
   // type system
 
   _type_hint: $ => choice(
-    $._atomic_type,
-    $.function_type,
-  ),
-
-  function_type: $ => prec.right(100, seq(
-    field('lhs', $._atomic_type),
-    '->',
-    field('rhs', $._type_hint)
-  )),
-
-  _atomic_type: $ => choice(
     $.primitive_type,
-    $.auto_type,
     $.void_type,
-    $.bool_type,
     $.self_type,
-    $.genericT_item,
+    alias($.identifier, $.type_identifier),
     $.tensor_type,
     $.tuple_type,
-    $.parenthesized_type
+    $.parenthesized_type,
+    $.fun_callable_type,
   ),
 
-  primitive_type: $ => choice('int', 'cell', 'slice', 'builder', 'continuation', 'tuple'),
-  auto_type: $ => 'auto',
-  void_type: $ => 'void',
-  bool_type: $ => 'bool',
-  self_type: $ => 'self',
+  primitive_type: $ => prec(2, choice('int', 'bool', 'cell', 'slice', 'builder', 'continuation', 'tuple')),
+  void_type: $ => prec(2, 'void'),
+  self_type: $ => prec(2, 'self'),
 
-  parenthesized_type: $ => seq('(', $._type_hint, ')'),
-  tensor_type: $ => choice(seq('(', ')'), seq('(', commaSep2($._type_hint), ')')),
-  tuple_type: $ => seq('[', commaSep($._type_hint), ']'),
+  tensor_type: $ => prec(2, choice(seq('(', ')'), seq('(', commaSep2($._type_hint), ')'))),
+  tuple_type: $ => prec(2, seq('[', commaSep($._type_hint), ']')),
+  parenthesized_type: $ => prec(2, seq('(', $._type_hint, ')')),
 
-  genericT_item: $ => /[a-zA-Z_$][a-zA-Z0-9_$]*/,
+  fun_callable_type: $ => prec.right(1, seq(field('param_types', $._type_hint), '->', field('return_type', $._type_hint))),
 
   // ----------------------------------------------------------
   // common constructions
@@ -449,6 +415,11 @@ const TOLK_GRAMMAR = {
 
 module.exports = grammar({
   name: 'tolk',
+
+  conflicts: $ => [
+    [$.instantiationT_list, $._brackets_lt_gt],
+    [$._comparison_lt_gt, $.binary_operator, $.generic_instantiation],
+  ],
 
   extras: $ => [
     /\s/,

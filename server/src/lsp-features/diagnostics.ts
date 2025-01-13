@@ -7,7 +7,7 @@ import { DepsIndex } from './deps-index';
 import { SymbolIndex } from './symbol-index';
 import { config } from '../server-config';
 import * as qf from './quickfixes';
-import { detectTolkLanguageCapabilities } from '../language-level';
+import { detectTolkLanguageCapabilities, TolkChangesByLevel } from '../language-level';
 import { TolkSdkMapping } from "../tolk-sdk-mapping";
 import { TolkCompilerSDK, TolkCompilerVersion } from "../config-scheme";
 import { extractNameFromNode, TolkDocumentSymbol } from './lsp-document-symbols'
@@ -56,7 +56,7 @@ class CollectedDiagnostics {
 
 class TreeVisitor {
   private constructor(
-    tolkCompilerVersion: TolkCompilerVersion,
+    private readonly tolkCompilerVersion: TolkCompilerVersion,
     private readonly isExperimentalDiagnostics: boolean,
     private readonly rootNode: Parser.SyntaxNode,
     private readonly diagnostics: CollectedDiagnostics,
@@ -117,8 +117,8 @@ class TreeVisitor {
       }
     }
 
-    if (node.type === 'bool_type' && !this.lang.booleanTypeSupported) {
-      this.diagnostics.error(`Bool type is not supported yet, use int; remember, that true is -1, not 1`, node)
+    if (!this.lang.booleanTypeSupported && node.type === 'primitive_type' && node.text === 'bool') {
+      this.diagnostics.error(`'bool' type is only allowed since Tolk ${TolkChangesByLevel.booleanTypeSupported} (you have ${this.tolkCompilerVersion} detected)`, node)
     }
 
     if (node.type === 'break_statement' || node.type === 'continue_statement') {

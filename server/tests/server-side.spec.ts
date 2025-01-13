@@ -28,7 +28,7 @@ fun third(a: slice): int { var local1 = 1; return local1; }
     expect(symbols.length).toBe(3)
 
     expect(symbols[0].lspSymbol.kind).toBe(lsp.SymbolKind.Constant)
-    expect(symbols[0].type.kind).toBe('auto')
+    expect(symbols[0].type.kind).toBe('unknown')
 
     expect(symbols[1].lspSymbol.kind).toBe(lsp.SymbolKind.Variable)
     expect(symbols[1].type.kind).toBe('primitive')
@@ -43,7 +43,7 @@ fun third(a: slice): int { var local1 = 1; return local1; }
 
   it('should find local variables', () => {
     let tolkSource = `
-fun main(cs: auto) {
+fun main(cs: slice) {
   var \`c1\` = 0;
   if (c1) {
     var c2 = 0;
@@ -60,7 +60,7 @@ fun main(cs: auto) {
     expect(locals1[0].name).toBe('c2')
     expect(locals1[1].name).toBe('c1')
     expect(locals1[2].name).toBe('cs')
-    expect(locals1[2].type.kind).toBe('auto')
+    expect(locals1[2].type.kind).toBe('primitive')
 
     let cursor2 = tree.rootNode.descendantsOfType('comment').find(c => c.text.includes('cursor2'))!
     let locals2 = findLocalVariables(tree.rootNode, cursor2.startPosition)
