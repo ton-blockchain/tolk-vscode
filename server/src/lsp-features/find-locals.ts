@@ -17,8 +17,8 @@ export function findLocalVariables(rootNode: Parser.SyntaxNode, cursorPosition: 
   while (descendant) {
     if (descendant.type === 'block_statement') {
       for (let child of descendant.children) {
-        if (child.type === 'statement' && child.children[0]?.type === 'local_vars_declaration') {
-          let declaredVarsNodes = child.child(0)!.descendantsOfType('var_declaration_lhs', undefined, cursorPosition) ?? []
+        if (child.type === 'local_vars_declaration') {
+          let declaredVarsNodes = child.descendantsOfType('var_declaration_lhs', undefined, cursorPosition) ?? []
           for (let potentialVarNode of declaredVarsNodes) {
             let nameNode = potentialVarNode.childForFieldName('name')
             if (nameNode)

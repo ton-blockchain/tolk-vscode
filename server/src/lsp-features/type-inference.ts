@@ -2,11 +2,7 @@ import * as Parser from 'web-tree-sitter';
 
 type PrimitiveType = {
   kind: 'primitive',
-  name: 'int' | 'cell' | 'slice' | 'builder' | 'cont' | 'tuple'
-}
-
-type AutoType = {
-  kind: 'auto'
+  name: 'int' | 'bool' | 'cell' | 'slice' | 'builder' | 'continuation' | 'tuple'
 }
 
 type VoidType = {
@@ -17,12 +13,8 @@ type SelfType = {
   kind: 'self'
 }
 
-type BoolType = {
-  kind: 'bool'
-}
-
-type GenericType = {
-  kind: 'genericT',
+type IdentifierType = {
+  kind: 'type_identifier',
   name: string
 }
 
@@ -46,17 +38,19 @@ export type FunctionType = {
   isGetMethod: boolean
 }
 
-export type AtomicType = PrimitiveType | AutoType | VoidType | SelfType | BoolType | GenericType | TensorType | TupleType;
+export type UnknownType = {
+  kind: 'unknown'
+}
 
-export type TolkType = AtomicType | FunctionType;
+export type TolkType = PrimitiveType | VoidType | SelfType | IdentifierType | TensorType | TupleType | FunctionType | UnknownType;
 
-function fallbackToAutoType(): TolkType {
-  return { kind: 'auto' }
+function fallbackToUnknownType(): TolkType {
+  return { kind: 'unknown' }
 }
 
 export function extractType(typeHint: Parser.SyntaxNode | null): TolkType {
   if (!typeHint) {
-    return fallbackToAutoType()
+    return fallbackToUnknownType()
   }
 
   switch (typeHint.type) {
@@ -64,10 +58,6 @@ export function extractType(typeHint: Parser.SyntaxNode | null): TolkType {
       return {
         kind: 'primitive',
         name: typeHint.text as PrimitiveType['name']
-      }
-    case 'auto_type':
-      return {
-        kind: 'auto'
       }
     case 'void_type':
       return {
@@ -77,13 +67,9 @@ export function extractType(typeHint: Parser.SyntaxNode | null): TolkType {
       return {
         kind: 'self'
       }
-    case 'bool_type':
+    case 'type_identifier':
       return {
-        kind: 'bool'
-      }
-    case 'genericT_item':
-      return {
-        kind: 'genericT',
+        kind: 'type_identifier',
         name: typeHint.text
       }
     case 'tensor_type': {
@@ -105,22 +91,22 @@ export function extractType(typeHint: Parser.SyntaxNode | null): TolkType {
         break
       }
       return extractType(typeHint.child(1)!)
-    case 'function_type': {
-      let lhs = typeHint.childForFieldName('lhs')
-      let rhs = typeHint.childForFieldName('rhs')
+    case 'fun_callable_type': {
+      let lhs = typeHint.childForFieldName('param_types')
+      let rhs = typeHint.childForFieldName('return_type')
       if (!lhs || !rhs) {
         break
       }
       return {
         kind: 'function',
-        parameters: lhs.children.map(n => ({ type: extractType(n) })),
+        parameters: lhs.namedChildren.map(n => ({ type: extractType(n) })),
         returns: extractType(rhs),
         isGetMethod: false
       }
     }
   }
 
-  return fallbackToAutoType()
+  return fallbackToUnknownType()
 }
 
 export function inferFunctionType(node: Parser.SyntaxNode): TolkType {
@@ -136,22 +122,18 @@ export function inferFunctionType(node: Parser.SyntaxNode): TolkType {
     }
   }
 
-  return fallbackToAutoType()
+  return fallbackToUnknownType()
 }
 
 export function stringifyType(type: TolkType): string {
   switch (type.kind) {
     case 'primitive':
       return type.name
-    case 'auto':
-      return 'auto'
     case 'void':
       return 'void'
     case 'self':
       return 'self'
-    case 'bool':
-      return 'bool'
-    case 'genericT':
+    case 'type_identifier':
       return type.name
     case 'tensor':
       return '(' + type.items.map(stringifyType).join(', ') + ')'
@@ -160,6 +142,6 @@ export function stringifyType(type: TolkType): string {
     case 'function':
       return stringifyType(type.returns)
     default:
-      return 'auto'
+      return 'unknown'
   }
 }

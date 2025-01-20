@@ -77,8 +77,8 @@ export class HoverLspHandler implements ILspHandler {
 
   private stringifyLocalVariable(symbol: TolkLocalVariable): string {
     const strVal = symbol.kind === 'parameter' ? 'param ' : 'var '
-    if (symbol.type.kind === 'auto' || symbol.type.kind === 'function') {
-      // return strVal + symbol.name
+    if (symbol.type.kind === 'unknown') {
+      return strVal + symbol.name
     }
     return strVal + symbol.name + ': ' + stringifyType(symbol.type)
   }

@@ -1,5 +1,6 @@
 "do" @keyword
 "if" @keyword
+"as" @keyword
 "fun" @keyword
 "asm" @keyword
 "get" @keyword
@@ -15,7 +16,6 @@
 "redef" @keyword
 "while" @keyword
 "catch" @keyword
-"ifnot" @keyword
 "return" @keyword
 "assert" @keyword
 "import" @keyword
@@ -74,17 +74,18 @@
 (annotation) @attribute
 
 (function_declaration
-  name: (function_name) @function)
+  name: (identifier) @function)
 (get_method_declaration
-  name: (function_name) @function)
+  name: (identifier) @function)
 (function_call
-  called_f: (identifier) @function)
-(dot_method_call
-  method_name: (identifier) @function)
+  callee: (identifier) @function)
+(function_call
+  callee: (dot_access (identifier) (identifier) @function))
+(dot_access
+  field: (identifier) @variable)
 
-(genericT_item) @type
+(type_identifier) @type
 (primitive_type) @type
-(auto_type) @type
 (void_type) @type
 (self_type) @type
 

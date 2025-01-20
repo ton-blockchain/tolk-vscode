@@ -10,7 +10,7 @@
         "Smart contract"
     ],
     "icon": "logo.png",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "engines": {
         "vscode": "^1.63.0"
     },
@@ -28,8 +28,8 @@
     "publisher": "ton-core",
     "license": "MIT",
     "scripts": {
-        "test": "yarn jest",
-        "build": "webpack",
+        "test": "yarn jest && cd tree-sitter-tolk && tree-sitter test",
+        "build": "NODE_ENV=production webpack",
         "grammar:wasm": "cd tree-sitter-tolk && tree-sitter generate && tree-sitter build-wasm --docker && cp tree-sitter-tolk.wasm ../server/tree-sitter-tolk.wasm",
         "watch": "webpack --watch"
     },
@@ -94,7 +94,7 @@
                         }
                     },
                     "default": {
-                        "tolkCompilerVersion": "0.6",
+                        "tolkCompilerVersion": "0.7",
                         "stdlibFolder": "/path/to/folder/stdlib-tolk"
                     }
                 },

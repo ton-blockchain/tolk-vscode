@@ -1,6 +1,7 @@
 import * as Parser from 'web-tree-sitter'
 import * as fs from 'fs'
 import { createParser, initParser } from '../src/parser'
+import { extractType } from '../src/lsp-features/type-inference'
 
 function parseTolkSource(source: string): Parser.SyntaxNode {
   let parser = createParser();
@@ -35,8 +36,8 @@ it('should parse stdlib.tolk', () => {
   expect(functions.length).toBe(93 + 16)
   expect(builtin.length).toBe(16)
   expect(rootNode.firstChild!.type).toBe('comment')
-  expect(tuplePush?.childForFieldName('genericsT')?.type).toBe('genericsT_list')
-  expect(tuplePush?.childForFieldName('genericsT')?.text).toBe('<X>')
+  expect(tuplePush?.childForFieldName('genericTs')?.type).toBe('genericT_list')
+  expect(tuplePush?.childForFieldName('genericTs')?.text).toBe('<X>')
   expect(skipBits?.childForFieldName("return_type")?.type).toBe('self_type')
   expect(skipBits?.childForFieldName("return_type")?.text).toBe('self')
 })
@@ -112,7 +113,7 @@ const bb: int = a == 0 & b == 1 & c == 2 & d == 3;
   expect(rootNode.hasError()).toBeFalsy()
   expect(const_decl.childForFieldName('name')!.text).toBe('bb')
   expect(const_decl.childForFieldName('type')!.text).toBe('int')
-  expect(const_decl.childForFieldName('value')!.namedChildCount).toBe(8)
+  expect(const_decl.childForFieldName('value')!.namedChildCount).toBe(2)
 })
 
 it('should parse without spaces 1', () => {
@@ -123,8 +124,8 @@ fun f2(): int { val res$2 = 1 + -2 + f() - 3 << 4 * - - - 15; }
   expect(rootNode.hasError()).toBeFalsy()
   let f1_body = rootNode.firstChild!.childForFieldName('body')!
   let f2_body = rootNode.lastChild!.childForFieldName('body')!
-  let f1_expr = f1_body.child(1)!.child(0)!.child(0)!
-  let f2_expr = f2_body.child(1)!.child(0)!.child(0)!
+  let f1_expr = f1_body.child(1)!.child(4)!
+  let f2_expr = f2_body.child(1)!.child(4)!
   expect(f1_expr.children.map(c => c.text)).toEqual(f2_expr.children.map(c => c.text))
 })
 
@@ -136,17 +137,30 @@ it('should parse identifiers in backticks', () => {
   expect(g_decl.type).toBe('global_var_declaration')
   expect(g_decl.childForFieldName('type')!.type).toBe('primitive_type')
   expect(g_decl.childForFieldName('type')!.text).toBe('int')
-  expect(f_body.firstNamedChild!.firstChild!.childForFieldName('assigned_val')!.firstChild!.type).toBe('null_literal')
+  expect(f_body.firstNamedChild!.childForFieldName('assigned_val')!.type).toBe('null_literal')
 })
 
 it('should parse return', () => {
   let rootNode = parseTolkSource('fun main() { return 1; return; }');
   let f_body = rootNode.firstChild!.childForFieldName('body')!
-  let return1 = f_body.firstNamedChild!.firstChild!
-  let return2 = f_body.lastNamedChild!.firstChild!
+  let return1 = f_body.firstNamedChild!
+  let return2 = f_body.lastNamedChild!
   expect(rootNode.hasError()).toBeFalsy()
   expect(return1.type).toBe(return2.type)
-  expect(return1.childForFieldName('body')?.type).toBe('expression')
+  expect(return1.childForFieldName('body')?.type).toBe('number_literal')
   expect(return2.childForFieldName('body')?.type).toBeUndefined()
 })
 
+it('should parse type hints', () => {
+  let rootNode = parseTolkSource('global g: (int) -> Something; fun f<T>(v: T): (T, tuple, [bool]) {}')
+  let gNode = rootNode.firstNamedChild!
+  let fNode = rootNode.lastNamedChild!
+  expect(gNode.type).toBe('global_var_declaration')
+  expect(fNode.type).toBe('function_declaration')
+  let gType = extractType(gNode.childForFieldName('type'))
+  let fType = extractType(fNode.childForFieldName('return_type'))
+  let vType = extractType(fNode.childForFieldName('parameters')!.descendantsOfType('parameter_declaration')[0]!.childForFieldName('type'))
+  expect(gType.kind === 'function' && gType.parameters.length === 1 && gType.returns.kind === 'type_identifier').toBeTruthy()
+  expect(fType.kind === 'tensor' && fType.items.length === 3 && fType.items[1].kind === 'primitive' && fType.items[2].kind === 'tuple' && fType.items[2].items[0].kind === 'primitive').toBeTruthy()
+  expect(vType.kind === 'type_identifier' && vType.name === 'T').toBeTruthy()
+})

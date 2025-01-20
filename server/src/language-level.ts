@@ -8,7 +8,6 @@ import { semverCompare } from "./utils/semver-compare";
 // IMPORTANT! Grammar (tree-sitter-tolk) always parses the latest version of Tolk,
 // and when some syntax is unsupported due to compilerVersion, they are highlighted as error diagnostics.
 export const TolkChangesByLevel = {
-  // in some future, bool type will be supported; for now, just parse, but highlight an error
   booleanTypeSupported: '0.7',
   // in some future, break/continue from loops will be supported; for now, just parse, but highlight an error
   breakContinueSupported: '0.20',
@@ -31,7 +30,7 @@ export function detectTolkLanguageCapabilities(compilerVersion: TolkCompilerVers
     return cachedCapabilities[compilerVersion]
   }
 
-  // for v0.6
+  // for v0.6 (initial released version)
   let c: TolkLanguageCapabilities = {
     booleanTypeSupported: false,
     breakContinueSupported: false,
