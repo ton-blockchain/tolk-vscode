@@ -1098,6 +1098,10 @@
           {
             "type": "identifier",
             "named": true
+          },
+          {
+            "type": "numeric_index",
+            "named": true
           }
         ]
       },
@@ -3642,6 +3646,10 @@
   },
   {
     "type": "number_literal",
+    "named": true
+  },
+  {
+    "type": "numeric_index",
     "named": true
   },
   {

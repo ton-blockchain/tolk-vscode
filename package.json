@@ -10,7 +10,7 @@
         "Smart contract"
     ],
     "icon": "logo.png",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "engines": {
         "vscode": "^1.63.0"
     },
@@ -94,7 +94,7 @@
                         }
                     },
                     "default": {
-                        "tolkCompilerVersion": "0.7",
+                        "tolkCompilerVersion": "0.8",
                         "stdlibFolder": "/path/to/folder/stdlib-tolk"
                     }
                 },

@@ -164,3 +164,23 @@ it('should parse type hints', () => {
   expect(fType.kind === 'tensor' && fType.items.length === 3 && fType.items[1].kind === 'primitive' && fType.items[2].kind === 'tuple' && fType.items[2].items[0].kind === 'primitive').toBeTruthy()
   expect(vType.kind === 'type_identifier' && vType.name === 'T').toBeTruthy()
 })
+
+it('should parse indexed access', () => {
+  let rootNode = parseTolkSource('fun main() { t.0; t.id; }');
+  let f_body = rootNode.firstChild!.childForFieldName('body')!
+  expect(rootNode.hasError()).toBeFalsy()
+  expect(f_body.namedChild(0)!.namedChild(0)!.type).toBe('dot_access')
+  expect(f_body.namedChild(0)!.namedChild(0)!.childForFieldName('field')!.text).toBe('0')
+  expect(f_body.namedChild(1)!.namedChild(0)!.type).toBe('dot_access')
+  expect(f_body.namedChild(1)!.namedChild(0)!.childForFieldName('field')!.text).toBe('id')
+})
+
+it('should parse indexed access', () => {
+  let rootNode = parseTolkSource('fun main() { t.0; t.id; }');
+  let f_body = rootNode.firstChild!.childForFieldName('body')!
+  expect(rootNode.hasError()).toBeFalsy()
+  expect(f_body.namedChild(0)!.namedChild(0)!.type).toBe('dot_access')
+  expect(f_body.namedChild(0)!.namedChild(0)!.childForFieldName('field')!.text).toBe('0')
+  expect(f_body.namedChild(1)!.namedChild(0)!.type).toBe('dot_access')
+  expect(f_body.namedChild(1)!.namedChild(0)!.childForFieldName('field')!.text).toBe('id')
+})
