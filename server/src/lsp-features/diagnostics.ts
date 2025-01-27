@@ -112,7 +112,7 @@ class TreeVisitor {
         let locals = findLocalVariables(this.rootNode, node.endPosition)
         found = !!locals.find(a => a.name === name)
       }
-      if (!found) {
+      if (!found && !name.startsWith('__')) {   // don't warn on `__expect_type` and other special names
         this.diagnostics.error(`Cannot find symbol '${name}'`, node)
       }
     }

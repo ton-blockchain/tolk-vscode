@@ -69,3 +69,59 @@ fun main(cs: slice) {
     expect(locals2[1].name).toBe('cs')
   })
 })
+
+it('should find catch variables', () => {
+  let tolkSource = `
+fun main(m: int) {
+  try { }
+  catch (excNo, arg) { 
+    // cursor1
+    return (excNo, arg); 
+  }
+  // cursor2
+}
+`
+  let tree = createParser().parse(tolkSource)
+
+  let cursor1 = tree.rootNode.descendantsOfType('comment').find(c => c.text.includes('cursor1'))!
+  let locals1 = findLocalVariables(tree.rootNode, cursor1.startPosition)
+  expect(locals1.length).toBe(3)
+  expect(locals1[0].name).toBe('excNo')
+  expect(locals1[0].type).toEqual({ kind: 'primitive', name: 'int' })
+  expect(locals1[1].name).toBe('arg')
+  expect(locals1[1].type).toEqual({ kind: 'unknown' })
+  expect(locals1[2].name).toBe('m')
+
+  let cursor2 = tree.rootNode.descendantsOfType('comment').find(c => c.text.includes('cursor2'))!
+  let locals2 = findLocalVariables(tree.rootNode, cursor2.startPosition)
+  expect(locals2.length).toBe(1)
+  expect(locals2[0].name).toBe('m')
+})
+
+it('should find catch variables', () => {
+  let tolkSource = `
+fun main(m: int) {
+  try { }
+  catch (excNo, arg) { 
+    // cursor1
+    return (excNo, arg); 
+  }
+  // cursor2
+}
+`
+  let tree = createParser().parse(tolkSource)
+
+  let cursor1 = tree.rootNode.descendantsOfType('comment').find(c => c.text.includes('cursor1'))!
+  let locals1 = findLocalVariables(tree.rootNode, cursor1.startPosition)
+  expect(locals1.length).toBe(3)
+  expect(locals1[0].name).toBe('excNo')
+  expect(locals1[0].type).toEqual({ kind: 'primitive', name: 'int' })
+  expect(locals1[1].name).toBe('arg')
+  expect(locals1[1].type).toEqual({ kind: 'unknown' })
+  expect(locals1[2].name).toBe('m')
+
+  let cursor2 = tree.rootNode.descendantsOfType('comment').find(c => c.text.includes('cursor2'))!
+  let locals2 = findLocalVariables(tree.rootNode, cursor2.startPosition)
+  expect(locals2.length).toBe(1)
+  expect(locals2[0].name).toBe('m')
+})

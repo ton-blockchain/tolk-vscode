@@ -338,7 +338,7 @@ const TOLK_GRAMMAR = {
   dot_access: $ => prec(80, seq(
     field('obj', $._expression),
     '.',
-    field('field', $.identifier)    // for method call, dot_access is wrapped into function_call, "field" actually means method name
+    field('field', choice($.identifier, $.numeric_index))    // for method call, dot_access is wrapped into function_call, "field" actually means method name
   )),
 
   function_call: $ => prec.left(90, seq(
@@ -405,6 +405,7 @@ const TOLK_GRAMMAR = {
   null_literal: $ => 'null',
   underscore: $ => '_',
   identifier: $ => /`[^`]+`|[a-zA-Z$_][a-zA-Z0-9$_]*/,
+  numeric_index: $ => /[0-9]+/,
 
   // http://stackoverflow.com/questions/13014947/regex-to-match-a-c-style-multiline-comment/36328890#36328890
   comment: $ => token(choice(

@@ -33,6 +33,20 @@ export function findLocalVariables(rootNode: Parser.SyntaxNode, cursorPosition: 
       }
     }
 
+    if (descendant.type === 'try_catch_statement') {
+      for (let childFieldName of ['catch_var1', 'catch_var2']) {
+        let catchVarNode = descendant.childForFieldName(childFieldName)
+        if (catchVarNode) {
+          result.push({
+            kind: 'variable',
+            node: catchVarNode,
+            name: extractNameFromNode(catchVarNode),
+            type: childFieldName === 'catch_var1' ? { kind: 'primitive', name: 'int' } : { kind: 'unknown' }
+          })
+        }
+      }
+    }
+
     if (descendant.type === 'function_declaration' || descendant.type === 'get_method_declaration') {
       let parameterNodes = descendant.childForFieldName('parameters')?.descendantsOfType('parameter_declaration') || []
       for (let paramNode of parameterNodes) {
