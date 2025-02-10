@@ -1918,8 +1918,17 @@
             "type": "FIELD",
             "name": "field",
             "content": {
-              "type": "SYMBOL",
-              "name": "identifier"
+              "type": "CHOICE",
+              "members": [
+                {
+                  "type": "SYMBOL",
+                  "name": "identifier"
+                },
+                {
+                  "type": "SYMBOL",
+                  "name": "numeric_index"
+                }
+              ]
             }
           }
         ]
@@ -2515,6 +2524,10 @@
     "identifier": {
       "type": "PATTERN",
       "value": "`[^`]+`|[a-zA-Z$_][a-zA-Z0-9$_]*"
+    },
+    "numeric_index": {
+      "type": "PATTERN",
+      "value": "[0-9]+"
     },
     "comment": {
       "type": "TOKEN",

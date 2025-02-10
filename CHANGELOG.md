@@ -3,6 +3,11 @@
 Historically, tolk-vscode has been cloned from [vscode-func](https://github.com/tonwhales/vscode-func)
 and completely refactored.
 
+## [0.8.0] - 2025-01-27
+
+* Support Tolk v0.8 (syntax `tensorVar.0` / `tupleVar.0`)
+* Fix a bug that variables in `catch` were considered unknown symbols
+
 ## [0.7.0] - 2025-01-13
 
 * Support Tolk v0.7 (`bool` type, `as` operator, generics instantiations `f<int>`)
