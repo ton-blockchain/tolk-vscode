@@ -5,6 +5,7 @@ Parse simple types
 global g: int;
 global g: (slice, int);
 global g: [slice, (tuple)];
+global g: never;
 
 ---
 (source_file
@@ -17,6 +18,9 @@ global g: [slice, (tuple)];
   (global_var_declaration
     (identifier)
     (tuple_type (primitive_type) (parenthesized_type (primitive_type))))
+  (global_var_declaration
+    (identifier)
+    (never_type))
 )
 
 ===
@@ -46,4 +50,30 @@ global g: (int) -> (cell, builder) -> [[slice]];
       (fun_callable_type
         (tensor_type (primitive_type) (primitive_type))
         (tuple_type (tuple_type (primitive_type))))))
+)
+
+===
+Parse nullable types
+===
+
+global g: int?;
+global g: (int, slice)??;
+global g: int -> [slice]?;
+
+---
+(source_file
+  (global_var_declaration
+    (identifier)
+    (nullable_type
+      (primitive_type)))
+  (global_var_declaration
+    (identifier)
+    (nullable_type
+      (nullable_type
+        (tensor_type (primitive_type) (primitive_type)))))
+  (global_var_declaration
+    (identifier)
+    (fun_callable_type
+      (primitive_type)
+      (nullable_type (tuple_type (primitive_type)))))
 )

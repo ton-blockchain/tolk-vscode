@@ -51,6 +51,10 @@
           "named": true
         },
         {
+          "type": "not_null_operator",
+          "named": true
+        },
+        {
           "type": "null_literal",
           "named": true
         },
@@ -187,6 +191,10 @@
             "named": true
           },
           {
+            "type": "not_null_operator",
+            "named": true
+          },
+          {
             "type": "null_literal",
             "named": true
           },
@@ -262,6 +270,10 @@
           },
           {
             "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "not_null_operator",
             "named": true
           },
           {
@@ -346,6 +358,10 @@
         },
         {
           "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "not_null_operator",
           "named": true
         },
         {
@@ -531,6 +547,10 @@
           "named": true
         },
         {
+          "type": "not_null_operator",
+          "named": true
+        },
+        {
           "type": "null_literal",
           "named": true
         },
@@ -691,6 +711,10 @@
             "named": true
           },
           {
+            "type": "not_null_operator",
+            "named": true
+          },
+          {
             "type": "null_literal",
             "named": true
           },
@@ -744,6 +768,14 @@
         "types": [
           {
             "type": "fun_callable_type",
+            "named": true
+          },
+          {
+            "type": "never_type",
+            "named": true
+          },
+          {
+            "type": "nullable_type",
             "named": true
           },
           {
@@ -814,6 +846,10 @@
           "named": true
         },
         {
+          "type": "not_null_operator",
+          "named": true
+        },
+        {
           "type": "null_literal",
           "named": true
         },
@@ -876,6 +912,14 @@
         "types": [
           {
             "type": "fun_callable_type",
+            "named": true
+          },
+          {
+            "type": "never_type",
+            "named": true
+          },
+          {
+            "type": "nullable_type",
             "named": true
           },
           {
@@ -942,6 +986,10 @@
           },
           {
             "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "not_null_operator",
             "named": true
           },
           {
@@ -1044,6 +1092,10 @@
             "named": true
           },
           {
+            "type": "not_null_operator",
+            "named": true
+          },
+          {
             "type": "null_literal",
             "named": true
           },
@@ -1142,6 +1194,10 @@
             "named": true
           },
           {
+            "type": "not_null_operator",
+            "named": true
+          },
+          {
             "type": "null_literal",
             "named": true
           },
@@ -1231,6 +1287,10 @@
           "named": true
         },
         {
+          "type": "not_null_operator",
+          "named": true
+        },
+        {
           "type": "null_literal",
           "named": true
         },
@@ -1286,6 +1346,14 @@
             "named": true
           },
           {
+            "type": "never_type",
+            "named": true
+          },
+          {
+            "type": "nullable_type",
+            "named": true
+          },
+          {
             "type": "parenthesized_type",
             "named": true
           },
@@ -1321,6 +1389,14 @@
         "types": [
           {
             "type": "fun_callable_type",
+            "named": true
+          },
+          {
+            "type": "never_type",
+            "named": true
+          },
+          {
+            "type": "nullable_type",
             "named": true
           },
           {
@@ -1403,6 +1479,10 @@
           },
           {
             "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "not_null_operator",
             "named": true
           },
           {
@@ -1532,6 +1612,14 @@
             "named": true
           },
           {
+            "type": "never_type",
+            "named": true
+          },
+          {
+            "type": "nullable_type",
+            "named": true
+          },
+          {
             "type": "parenthesized_type",
             "named": true
           },
@@ -1616,6 +1704,10 @@
           },
           {
             "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "not_null_operator",
             "named": true
           },
           {
@@ -1725,6 +1817,14 @@
             "named": true
           },
           {
+            "type": "never_type",
+            "named": true
+          },
+          {
+            "type": "nullable_type",
+            "named": true
+          },
+          {
             "type": "parenthesized_type",
             "named": true
           },
@@ -1776,6 +1876,14 @@
         "types": [
           {
             "type": "fun_callable_type",
+            "named": true
+          },
+          {
+            "type": "never_type",
+            "named": true
+          },
+          {
+            "type": "nullable_type",
             "named": true
           },
           {
@@ -1879,6 +1987,10 @@
             "named": true
           },
           {
+            "type": "not_null_operator",
+            "named": true
+          },
+          {
             "type": "null_literal",
             "named": true
           },
@@ -1948,6 +2060,14 @@
       "types": [
         {
           "type": "fun_callable_type",
+          "named": true
+        },
+        {
+          "type": "never_type",
+          "named": true
+        },
+        {
+          "type": "nullable_type",
           "named": true
         },
         {
@@ -2022,6 +2142,10 @@
             "named": true
           },
           {
+            "type": "not_null_operator",
+            "named": true
+          },
+          {
             "type": "null_literal",
             "named": true
           },
@@ -2076,6 +2200,151 @@
     }
   },
   {
+    "type": "never_type",
+    "named": true,
+    "fields": {}
+  },
+  {
+    "type": "not_null_operator",
+    "named": true,
+    "fields": {
+      "inner": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "assignment",
+            "named": true
+          },
+          {
+            "type": "binary_operator",
+            "named": true
+          },
+          {
+            "type": "boolean_literal",
+            "named": true
+          },
+          {
+            "type": "cast_as_operator",
+            "named": true
+          },
+          {
+            "type": "dot_access",
+            "named": true
+          },
+          {
+            "type": "function_call",
+            "named": true
+          },
+          {
+            "type": "generic_instantiation",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "not_null_operator",
+            "named": true
+          },
+          {
+            "type": "null_literal",
+            "named": true
+          },
+          {
+            "type": "number_literal",
+            "named": true
+          },
+          {
+            "type": "parenthesized_expression",
+            "named": true
+          },
+          {
+            "type": "set_assignment",
+            "named": true
+          },
+          {
+            "type": "string_literal",
+            "named": true
+          },
+          {
+            "type": "tensor_expression",
+            "named": true
+          },
+          {
+            "type": "ternary_operator",
+            "named": true
+          },
+          {
+            "type": "typed_tuple",
+            "named": true
+          },
+          {
+            "type": "unary_operator",
+            "named": true
+          },
+          {
+            "type": "underscore",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "nullable_type",
+    "named": true,
+    "fields": {
+      "inner": {
+        "multiple": false,
+        "required": true,
+        "types": [
+          {
+            "type": "fun_callable_type",
+            "named": true
+          },
+          {
+            "type": "never_type",
+            "named": true
+          },
+          {
+            "type": "nullable_type",
+            "named": true
+          },
+          {
+            "type": "parenthesized_type",
+            "named": true
+          },
+          {
+            "type": "primitive_type",
+            "named": true
+          },
+          {
+            "type": "self_type",
+            "named": true
+          },
+          {
+            "type": "tensor_type",
+            "named": true
+          },
+          {
+            "type": "tuple_type",
+            "named": true
+          },
+          {
+            "type": "type_identifier",
+            "named": true
+          },
+          {
+            "type": "void_type",
+            "named": true
+          }
+        ]
+      }
+    }
+  },
+  {
     "type": "parameter_declaration",
     "named": true,
     "fields": {
@@ -2095,6 +2364,14 @@
         "types": [
           {
             "type": "fun_callable_type",
+            "named": true
+          },
+          {
+            "type": "never_type",
+            "named": true
+          },
+          {
+            "type": "nullable_type",
             "named": true
           },
           {
@@ -2185,6 +2462,10 @@
           "named": true
         },
         {
+          "type": "not_null_operator",
+          "named": true
+        },
+        {
           "type": "null_literal",
           "named": true
         },
@@ -2237,6 +2518,14 @@
       "types": [
         {
           "type": "fun_callable_type",
+          "named": true
+        },
+        {
+          "type": "never_type",
+          "named": true
+        },
+        {
+          "type": "nullable_type",
           "named": true
         },
         {
@@ -2326,6 +2615,10 @@
             "named": true
           },
           {
+            "type": "not_null_operator",
+            "named": true
+          },
+          {
             "type": "null_literal",
             "named": true
           },
@@ -2407,6 +2700,10 @@
           },
           {
             "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "not_null_operator",
             "named": true
           },
           {
@@ -2546,6 +2843,10 @@
           "named": true
         },
         {
+          "type": "not_null_operator",
+          "named": true
+        },
+        {
           "type": "null_literal",
           "named": true
         },
@@ -2668,6 +2969,10 @@
           "named": true
         },
         {
+          "type": "not_null_operator",
+          "named": true
+        },
+        {
           "type": "null_literal",
           "named": true
         },
@@ -2720,6 +3025,14 @@
       "types": [
         {
           "type": "fun_callable_type",
+          "named": true
+        },
+        {
+          "type": "never_type",
+          "named": true
+        },
+        {
+          "type": "nullable_type",
           "named": true
         },
         {
@@ -2791,6 +3104,10 @@
         },
         {
           "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "not_null_operator",
           "named": true
         },
         {
@@ -2874,6 +3191,10 @@
         },
         {
           "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "not_null_operator",
           "named": true
         },
         {
@@ -2994,6 +3315,14 @@
           "named": true
         },
         {
+          "type": "never_type",
+          "named": true
+        },
+        {
+          "type": "nullable_type",
+          "named": true
+        },
+        {
           "type": "parenthesized_type",
           "named": true
         },
@@ -3062,6 +3391,10 @@
         },
         {
           "type": "identifier",
+          "named": true
+        },
+        {
+          "type": "not_null_operator",
           "named": true
         },
         {
@@ -3171,6 +3504,10 @@
           "named": true
         },
         {
+          "type": "not_null_operator",
+          "named": true
+        },
+        {
           "type": "null_literal",
           "named": true
         },
@@ -3233,6 +3570,14 @@
         "types": [
           {
             "type": "fun_callable_type",
+            "named": true
+          },
+          {
+            "type": "never_type",
+            "named": true
+          },
+          {
+            "type": "nullable_type",
             "named": true
           },
           {
@@ -3330,6 +3675,10 @@
           },
           {
             "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "not_null_operator",
             "named": true
           },
           {
@@ -3638,6 +3987,10 @@
   },
   {
     "type": "mutate",
+    "named": false
+  },
+  {
+    "type": "never",
     "named": false
   },
   {

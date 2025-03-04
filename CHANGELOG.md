@@ -3,6 +3,11 @@
 Historically, tolk-vscode has been cloned from [vscode-func](https://github.com/tonwhales/vscode-func)
 and completely refactored.
 
+## [0.9.0] - 2025-03-04
+
+* Support Tolk v0.9 syntax (nullable types, operator `!`, type `never`)
+* Nullable types are parsed, but smart casts not implemented
+
 ## [0.8.0] - 2025-01-27
 
 * Support Tolk v0.8 (syntax `tensorVar.0` / `tupleVar.0`)

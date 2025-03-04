@@ -4,7 +4,7 @@ Generics 1
 fun main() {
     f;
     f<int>;
-    f<int>();
+    f<int?>();
     obj.f;
     obj.f<T>;
     obj.f<slice>();
@@ -16,7 +16,7 @@ fun main() {
   (expression_statement
     (generic_instantiation (identifier) (instantiationT_list (primitive_type))))
   (expression_statement
-    (function_call (generic_instantiation (identifier) (instantiationT_list (primitive_type)))
+    (function_call (generic_instantiation (identifier) (instantiationT_list (nullable_type (primitive_type))))
                    (argument_list)))
   (expression_statement
     (dot_access (identifier)

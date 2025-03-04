@@ -1377,6 +1377,10 @@
         },
         {
           "type": "SYMBOL",
+          "name": "not_null_operator"
+        },
+        {
+          "type": "SYMBOL",
           "name": "dot_access"
         },
         {
@@ -1934,6 +1938,27 @@
         ]
       }
     },
+    "not_null_operator": {
+      "type": "PREC",
+      "value": 90,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "FIELD",
+            "name": "inner",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_expression"
+            }
+          },
+          {
+            "type": "STRING",
+            "value": "!"
+          }
+        ]
+      }
+    },
     "function_call": {
       "type": "PREC_LEFT",
       "value": 90,
@@ -2232,6 +2257,10 @@
           "name": "self_type"
         },
         {
+          "type": "SYMBOL",
+          "name": "never_type"
+        },
+        {
           "type": "ALIAS",
           "content": {
             "type": "SYMBOL",
@@ -2255,6 +2284,10 @@
         {
           "type": "SYMBOL",
           "name": "fun_callable_type"
+        },
+        {
+          "type": "SYMBOL",
+          "name": "nullable_type"
         }
       ]
     },
@@ -2309,6 +2342,14 @@
       "content": {
         "type": "STRING",
         "value": "self"
+      }
+    },
+    "never_type": {
+      "type": "PREC",
+      "value": 2,
+      "content": {
+        "type": "STRING",
+        "value": "never"
       }
     },
     "tensor_type": {
@@ -2467,6 +2508,27 @@
               "type": "SYMBOL",
               "name": "_type_hint"
             }
+          }
+        ]
+      }
+    },
+    "nullable_type": {
+      "type": "PREC_RIGHT",
+      "value": 110,
+      "content": {
+        "type": "SEQ",
+        "members": [
+          {
+            "type": "FIELD",
+            "name": "inner",
+            "content": {
+              "type": "SYMBOL",
+              "name": "_type_hint"
+            }
+          },
+          {
+            "type": "STRING",
+            "value": "?"
           }
         ]
       }
