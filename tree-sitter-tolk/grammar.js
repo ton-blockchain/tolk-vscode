@@ -278,6 +278,7 @@ const TOLK_GRAMMAR = {
     $.binary_operator,
     $.unary_operator,
     $.cast_as_operator,
+    $.not_null_operator,
     $.dot_access,
     $.function_call,
     $.generic_instantiation,
@@ -341,6 +342,11 @@ const TOLK_GRAMMAR = {
     field('field', choice($.identifier, $.numeric_index))    // for method call, dot_access is wrapped into function_call, "field" actually means method name
   )),
 
+  not_null_operator: $ => prec(90, seq(
+    field('inner', $._expression),
+    '!'
+  )),
+
   function_call: $ => prec.left(90, seq(
     field('callee', $._expression), // callee can be generic_instantiation or dot_access
     field('arguments', $.argument_list)
@@ -376,22 +382,26 @@ const TOLK_GRAMMAR = {
     $.primitive_type,
     $.void_type,
     $.self_type,
+    $.never_type,
     alias($.identifier, $.type_identifier),
     $.tensor_type,
     $.tuple_type,
     $.parenthesized_type,
     $.fun_callable_type,
+    $.nullable_type,
   ),
 
   primitive_type: $ => prec(2, choice('int', 'bool', 'cell', 'slice', 'builder', 'continuation', 'tuple')),
   void_type: $ => prec(2, 'void'),
   self_type: $ => prec(2, 'self'),
+  never_type: $ => prec(2, 'never'),
 
   tensor_type: $ => prec(2, choice(seq('(', ')'), seq('(', commaSep2($._type_hint), ')'))),
   tuple_type: $ => prec(2, seq('[', commaSep($._type_hint), ']')),
   parenthesized_type: $ => prec(2, seq('(', $._type_hint, ')')),
 
   fun_callable_type: $ => prec.right(1, seq(field('param_types', $._type_hint), '->', field('return_type', $._type_hint))),
+  nullable_type: $ => prec.right(110, seq(field('inner', $._type_hint), '?')),
 
   // ----------------------------------------------------------
   // common constructions

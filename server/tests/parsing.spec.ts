@@ -1,7 +1,7 @@
 import * as Parser from 'web-tree-sitter'
 import * as fs from 'fs'
 import { createParser, initParser } from '../src/parser'
-import { extractType } from '../src/lsp-features/type-inference'
+import { extractType, stringifyType } from '../src/lsp-features/type-inference'
 
 function parseTolkSource(source: string): Parser.SyntaxNode {
   let parser = createParser();
@@ -152,17 +152,27 @@ it('should parse return', () => {
 })
 
 it('should parse type hints', () => {
-  let rootNode = parseTolkSource('global g: (int) -> Something; fun f<T>(v: T): (T, tuple, [bool]) {}')
+  let rootNode = parseTolkSource(`
+global g: (int)->Something; 
+fun f<T>(v: T): (T, tuple?, [bool]) {}
+fun thro(): never{}
+`)
   let gNode = rootNode.firstNamedChild!
-  let fNode = rootNode.lastNamedChild!
+  let fNode = gNode.nextNamedSibling!
+  let tNode = fNode.nextNamedSibling!
   expect(gNode.type).toBe('global_var_declaration')
   expect(fNode.type).toBe('function_declaration')
   let gType = extractType(gNode.childForFieldName('type'))
   let fType = extractType(fNode.childForFieldName('return_type'))
   let vType = extractType(fNode.childForFieldName('parameters')!.descendantsOfType('parameter_declaration')[0]!.childForFieldName('type'))
+  let tType = extractType(tNode.childForFieldName('return_type'))
   expect(gType.kind === 'function' && gType.parameters.length === 1 && gType.returns.kind === 'type_identifier').toBeTruthy()
-  expect(fType.kind === 'tensor' && fType.items.length === 3 && fType.items[1].kind === 'primitive' && fType.items[2].kind === 'tuple' && fType.items[2].items[0].kind === 'primitive').toBeTruthy()
+  expect(fType.kind === 'tensor' && fType.items.length === 3 && fType.items[1].kind === 'nullable' && fType.items[1].inner.kind === 'primitive' && fType.items[2].kind === 'tuple' && fType.items[2].items[0].kind === 'primitive').toBeTruthy()
   expect(vType.kind === 'type_identifier' && vType.name === 'T').toBeTruthy()
+  expect(tType.kind).toBe('never')
+  expect(stringifyType(gType)).toBe('Something')
+  expect(stringifyType(fType)).toBe('(T, tuple?, [bool])')
+  expect(stringifyType(tType)).toBe('never')
 })
 
 it('should parse indexed access', () => {

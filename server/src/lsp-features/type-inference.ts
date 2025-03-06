@@ -13,6 +13,10 @@ type SelfType = {
   kind: 'self'
 }
 
+type NeverType = {
+  kind: 'never'
+}
+
 type IdentifierType = {
   kind: 'type_identifier',
   name: string
@@ -26,6 +30,11 @@ type TensorType = {
 type TupleType = {
   kind: 'tuple',
   items: TolkType[]
+}
+
+type NullableType = {
+  kind: 'nullable',
+  inner: TolkType
 }
 
 export type FunctionType = {
@@ -42,7 +51,7 @@ export type UnknownType = {
   kind: 'unknown'
 }
 
-export type TolkType = PrimitiveType | VoidType | SelfType | IdentifierType | TensorType | TupleType | FunctionType | UnknownType;
+export type TolkType = PrimitiveType | VoidType | SelfType | NeverType | IdentifierType | TensorType | TupleType | NullableType | FunctionType | UnknownType;
 
 function fallbackToUnknownType(): TolkType {
   return { kind: 'unknown' }
@@ -66,6 +75,10 @@ export function extractType(typeHint: Parser.SyntaxNode | null): TolkType {
     case 'self_type':
       return {
         kind: 'self'
+      }
+    case 'never_type':
+      return {
+        kind: 'never'
       }
     case 'type_identifier':
       return {
@@ -91,6 +104,11 @@ export function extractType(typeHint: Parser.SyntaxNode | null): TolkType {
         break
       }
       return extractType(typeHint.child(1)!)
+    case 'nullable_type':
+      return {
+        kind: 'nullable',
+        inner: extractType(typeHint.namedChild(0)!)
+      }
     case 'fun_callable_type': {
       let lhs = typeHint.childForFieldName('param_types')
       let rhs = typeHint.childForFieldName('return_type')
@@ -133,12 +151,17 @@ export function stringifyType(type: TolkType): string {
       return 'void'
     case 'self':
       return 'self'
+    case 'never':
+      return 'never'
     case 'type_identifier':
       return type.name
     case 'tensor':
       return '(' + type.items.map(stringifyType).join(', ') + ')'
     case 'tuple':
       return '[' + type.items.map(stringifyType).join(', ') + ']'
+    case 'nullable':
+      let embrace = type.inner.kind === 'function'
+      return embrace ? '(' + stringifyType(type.inner) + ')?' : stringifyType(type.inner) + '?'
     case 'function':
       return stringifyType(type.returns)
     default:
