@@ -99,6 +99,7 @@ const TOLK_GRAMMAR = {
     optional(seq(
       '(',
       repeat($._expression),
+      optional(','),
       ')'
     ))
   ),
@@ -113,6 +114,7 @@ const TOLK_GRAMMAR = {
   parameter_list: $ => seq(
     '(',
     commaSep($.parameter_declaration),
+    optional(','),
     ')'
   ),
   parameter_declaration: $ => seq(
@@ -354,6 +356,7 @@ const TOLK_GRAMMAR = {
   argument_list: $ => seq(
     '(',
     commaSep($.call_argument),
+    optional(','),
     ')'
   ),
   call_argument: $ => seq(
@@ -371,9 +374,9 @@ const TOLK_GRAMMAR = {
     '>'
   )),
 
-  parenthesized_expression: $ => seq('(', $._expression, ')'),
-  tensor_expression: $ => choice(seq('(', ')'), seq('(', commaSep2($._expression), ')')),
-  typed_tuple: $ => seq('[', commaSep($._expression), ']'),
+  parenthesized_expression: $ => seq('(', $._expression, optional(','), ')'),
+  tensor_expression: $ => choice(seq('(', ')'), seq('(', commaSep2($._expression), optional(','), ')')),
+  typed_tuple: $ => seq('[', commaSep($._expression), optional(','), ']'),
 
   // ----------------------------------------------------------
   // type system
@@ -408,6 +411,7 @@ const TOLK_GRAMMAR = {
 
   number_literal: $ => token(choice(
     seq('0x', /[0-9a-fA-F]+/),
+    seq('0b', /[01]+/),
     /[0-9]+/
   )),
   string_literal: $ => /"[^"]*"\w?/,

@@ -3,6 +3,10 @@
 Historically, tolk-vscode has been cloned from [vscode-func](https://github.com/tonwhales/vscode-func)
 and completely refactored.
 
+## [0.10.0] - 2025-03-19
+
+* Support Tolk v0.10 syntax (trailing comma, `0b1100` literals)
+
 ## [0.9.0] - 2025-03-04
 
 * Support Tolk v0.9 syntax (nullable types, operator `!`, type `never`)

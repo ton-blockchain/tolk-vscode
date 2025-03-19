@@ -77,3 +77,21 @@ global g: int -> [slice]?;
       (primitive_type)
       (nullable_type (tuple_type (primitive_type)))))
 )
+
+===
+Parse intN types
+===
+
+global g: int32;
+global g: coins?;
+
+---
+(source_file
+  (global_var_declaration
+    (identifier)
+    (type_identifier))
+  (global_var_declaration
+    (identifier)
+    (nullable_type
+      (type_identifier)))
+)
