@@ -2,7 +2,7 @@ import * as Parser from 'web-tree-sitter';
 
 type PrimitiveType = {
   kind: 'primitive',
-  name: 'int' | 'bool' | 'cell' | 'slice' | 'builder' | 'continuation' | 'tuple'
+  name: 'int' | 'bool' | 'cell' | 'slice' | 'builder' | 'continuation' | 'tuple' | 'coins'
 }
 
 type VoidType = {
@@ -47,11 +47,17 @@ export type FunctionType = {
   isGetMethod: boolean
 }
 
+export type UnionType = {
+  kind: 'union',
+  lhs: TolkType,
+  rhs: TolkType
+}
+
 export type UnknownType = {
   kind: 'unknown'
 }
 
-export type TolkType = PrimitiveType | VoidType | SelfType | NeverType | IdentifierType | TensorType | TupleType | NullableType | FunctionType | UnknownType;
+export type TolkType = PrimitiveType | VoidType | SelfType | NeverType | IdentifierType | TensorType | TupleType | NullableType | FunctionType | UnionType | UnknownType;
 
 function fallbackToUnknownType(): TolkType {
   return { kind: 'unknown' }
@@ -109,6 +115,18 @@ export function extractType(typeHint: Parser.SyntaxNode | null): TolkType {
         kind: 'nullable',
         inner: extractType(typeHint.namedChild(0)!)
       }
+    case 'union_type': {
+      let lhs = typeHint.childForFieldName('lhs')
+      let rhs = typeHint.childForFieldName('rhs')
+      if (!lhs || !rhs) {
+        break
+      }
+      return {
+        kind: 'union',
+        lhs: extractType(lhs),
+        rhs: extractType(rhs),
+      }
+    }
     case 'fun_callable_type': {
       let lhs = typeHint.childForFieldName('param_types')
       let rhs = typeHint.childForFieldName('return_type')
@@ -162,6 +180,8 @@ export function stringifyType(type: TolkType): string {
     case 'nullable':
       let embrace = type.inner.kind === 'function'
       return embrace ? '(' + stringifyType(type.inner) + ')?' : stringifyType(type.inner) + '?'
+    case 'union':
+      return stringifyType(type.lhs) + ' | ' + stringifyType(type.rhs)
     case 'function':
       return stringifyType(type.returns)
     default:
