@@ -16,27 +16,27 @@
     {
       "name": "string.quoted.double",
       "begin": "\"",
-      "end": "\"(H|h|c|u|s|a)?"
+      "end": "\""
     },
     {
       "name": "constant.numeric",
-      "match": "(-?([\\d]+|0x[\\da-fA-F]+))\\b"
+      "match": "(-?([\\d]+|0x[\\da-fA-F]+|0b[01]+))\\b"
     },
     {
       "name": "keyword.control",
-      "match": "\\b(do|if|try|else|while|break|throw|catch|return|assert|repeat|continue|asm|builtin)\\b"
+      "match": "\\b(do|if|try|else|while|break|throw|catch|return|assert|repeat|continue|asm|builtin|match)\\b"
     },
     {
       "name": "keyword.operator",
-      "match": "\\+|-|\\*|/|%|\\?|:|,|;|\\(|\\)|\\[|\\]|{|}|=|<|>|!|&|\\||\\^|==|!=|<=|>=|<<|>>|&&|\\|\\||~/|\\^/|\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|->|<=>|~>>|\\^>>|<<=|>>="
+      "match": "\\+|-|\\*|/|%|\\?|:|,|;|\\(|\\)|\\[|\\]|{|}|=|<|>|!|&|\\||\\^|==|!=|<=|>=|<<|>>|&&|\\|\\||~/|\\^/|\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|->|<=>|~>>|\\^>>|<<=|>>=|=>"
     },
     {
       "name": "keyword.other",
-      "match": "\\b(import|export|true|false|null|redef|mutate|tolk)\\b"
+      "match": "\\b(import|export|true|false|null|redef|mutate|tolk|as|is|!is)\\b"
     },
     {
       "name": "storage.type",
-      "match": "\\b(type|enum|int|cell|void|bool|auto|slice|tuple|builder|continuation)\\b"
+      "match": "\\b(type|enum|int|cell|void|bool|slice|tuple|builder|continuation|never|coins|int\\d+|uint\\d+)\\b"
     },
     {
       "name": "storage.modifier",

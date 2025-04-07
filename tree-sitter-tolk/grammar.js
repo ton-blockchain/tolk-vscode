@@ -24,6 +24,7 @@ const TOLK_GRAMMAR = {
     $.import_directive,
     $.global_var_declaration,
     $.constant_declaration,
+    $.type_alias_declaration,
     $.function_declaration,
     $.get_method_declaration,
     $.empty_statement,
@@ -57,6 +58,14 @@ const TOLK_GRAMMAR = {
     )),
     '=',
     field('value', $._expression),
+    ';'
+  ),
+
+  type_alias_declaration: $ => seq(
+    'type',
+    field('name', $.identifier),
+    '=',
+    field('underlying_type', $._type_hint),
     ';'
   ),
 
@@ -146,29 +155,35 @@ const TOLK_GRAMMAR = {
   // ----------------------------------------------------------
   // statements
 
-  _statement: $ => choice(
-    $.local_vars_declaration,
+  _statement_ending_with_brace: $ => choice(
     $.block_statement,
-    $.return_statement,
     $.if_statement,
-    $.repeat_statement,
-    $.do_while_statement,
     $.while_statement,
+    $.repeat_statement,
+    $.try_catch_statement,
+    $.empty_statement,
+    $.match_statement,
+  ),
+  _statement_require_semicolon_unless_last: $ => choice(
+    $.local_vars_declaration,
+    $.return_statement,
+    $.do_while_statement,
     $.break_statement,
     $.continue_statement,
     $.throw_statement,
     $.assert_statement,
-    $.try_catch_statement,
-    $.empty_statement,
     $.expression_statement,
+  ),
+  _statement: $ => choice(
+    $._statement_ending_with_brace,
+    seq($._statement_require_semicolon_unless_last, ';')
   ),
 
   local_vars_declaration: $ => seq(
     choice('var', 'val'),
     field('lhs', $.var_declaration_lhs),
     '=',
-    field('assigned_val', $._expression),
-    ';'
+    field('assigned_val', $._expression)
   ),
   var_declaration_lhs: $ => choice(
     seq('(', commaSep1($.var_declaration_lhs), ')'),
@@ -185,13 +200,13 @@ const TOLK_GRAMMAR = {
   block_statement: $ => seq(
     '{',
     repeat($._statement),
+    optional($._statement_require_semicolon_unless_last),
     '}'
   ),
 
   return_statement: $ => seq(
     'return',
-    optional(field('body', $._expression)),
-    ';'
+    optional(field('body', $._expression))
   ),
 
   repeat_statement: $ => seq(
@@ -220,8 +235,7 @@ const TOLK_GRAMMAR = {
     'while',
     '(',
     field('condition', $._expression),
-    ')',
-    ';'
+    ')'
   ),
 
   while_statement: $ => seq(
@@ -232,13 +246,12 @@ const TOLK_GRAMMAR = {
     field('body', $.block_statement)
   ),
 
-  break_statement: $ => seq('break', ';'),
-  continue_statement: $ => seq('continue', ';'),
+  break_statement: $ => 'break',
+  continue_statement: $ => 'continue',
 
   throw_statement: $ => seq(
     'throw',
-    $._expression,   // excNo, (excNo), (excNo, arg); but (1,2,3) will be also acceptable
-    ';'
+    $._expression    // excNo, (excNo), (excNo, arg); but (1,2,3) will be also acceptable
   ),
 
   assert_statement: $ => seq(
@@ -246,8 +259,7 @@ const TOLK_GRAMMAR = {
     choice(
       seq('(', field('condition', $._expression), ')', 'throw', field('excNo', $._expression)),
       seq('(', field('condition', $._expression), ',', field('excNo', $._expression), ')')
-    ),
-    ';'
+    )
   ),
 
   try_catch_statement: $ => seq(
@@ -268,7 +280,7 @@ const TOLK_GRAMMAR = {
 
   empty_statement: $ => ';',
 
-  expression_statement: $ => seq($._expression, ';'),
+  expression_statement: $ => $._expression,
 
   // ----------------------------------------------------------
   // expressions
@@ -280,11 +292,13 @@ const TOLK_GRAMMAR = {
     $.binary_operator,
     $.unary_operator,
     $.cast_as_operator,
+    $.is_type_operator,
     $.not_null_operator,
     $.dot_access,
     $.function_call,
     $.generic_instantiation,
     $.parenthesized_expression,
+    $.match_expression,
     $.tensor_expression,
     $.typed_tuple,
     $.number_literal,
@@ -337,6 +351,11 @@ const TOLK_GRAMMAR = {
     'as',
     field('casted_to', $._type_hint)
   )),
+  is_type_operator: $ => prec(40, seq(
+    $._expression,
+    'is',
+    field('rhs_type', $._type_hint)
+  )),
 
   dot_access: $ => prec(80, seq(
     field('obj', $._expression),
@@ -374,6 +393,32 @@ const TOLK_GRAMMAR = {
     '>'
   )),
 
+  match_statement: $ => prec(99, $.match_expression),
+  match_expression: $ => seq(
+    'match',
+    '(',
+    field('expr', choice($._expression, $.local_vars_declaration)),
+    ')',
+    '{',
+    optional(repeat1($.match_arm)),
+    '}',
+  ),
+  match_arm: $ => seq(
+    choice(
+      field('pattern_type', $._type_hint),
+      field('pattern_expr', $._expression),
+      field('pattern_else', 'else'),
+    ),
+    '=>',
+    field('body', choice(
+      $.block_statement,
+      seq('return', $._expression),
+      seq('throw', $._expression),
+      $._expression,
+    )),
+    optional(','),  // todo now `match (...) { 1 => 1 2 => 2 }` is ok, but actually comma is required
+  ),
+
   parenthesized_expression: $ => seq('(', $._expression, optional(','), ')'),
   tensor_expression: $ => choice(seq('(', ')'), seq('(', commaSep2($._expression), optional(','), ')')),
   typed_tuple: $ => seq('[', commaSep($._expression), optional(','), ']'),
@@ -381,7 +426,7 @@ const TOLK_GRAMMAR = {
   // ----------------------------------------------------------
   // type system
 
-  _type_hint: $ => choice(
+  _type_hint: $ => prec(100, choice(
     $.primitive_type,
     $.void_type,
     $.self_type,
@@ -392,19 +437,21 @@ const TOLK_GRAMMAR = {
     $.parenthesized_type,
     $.fun_callable_type,
     $.nullable_type,
-  ),
+    $.union_type,
+  )),
 
-  primitive_type: $ => prec(2, choice('int', 'bool', 'cell', 'slice', 'builder', 'continuation', 'tuple')),
-  void_type: $ => prec(2, 'void'),
-  self_type: $ => prec(2, 'self'),
-  never_type: $ => prec(2, 'never'),
+  primitive_type: $ => prec(103, choice('int', 'bool', 'cell', 'slice', 'builder', 'continuation', 'tuple', 'coins')),
+  void_type: $ => prec(103, 'void'),
+  self_type: $ => prec(103, 'self'),
+  never_type: $ => prec(103, 'never'),
 
-  tensor_type: $ => prec(2, choice(seq('(', ')'), seq('(', commaSep2($._type_hint), ')'))),
-  tuple_type: $ => prec(2, seq('[', commaSep($._type_hint), ']')),
-  parenthesized_type: $ => prec(2, seq('(', $._type_hint, ')')),
+  tensor_type: $ => prec(103, choice(seq('(', ')'), seq('(', commaSep2($._type_hint), ')'))),
+  tuple_type: $ => prec(103, seq('[', commaSep($._type_hint), ']')),
+  parenthesized_type: $ => prec(103, seq('(', $._type_hint, ')')),
 
-  fun_callable_type: $ => prec.right(1, seq(field('param_types', $._type_hint), '->', field('return_type', $._type_hint))),
+  fun_callable_type: $ => prec.right(101, seq(field('param_types', $._type_hint), '->', field('return_type', $._type_hint))),
   nullable_type: $ => prec.right(110, seq(field('inner', $._type_hint), '?')),
+  union_type: $ => prec.right(102, seq(field('lhs', $._type_hint),'|', field('rhs', $._type_hint))),
 
   // ----------------------------------------------------------
   // common constructions

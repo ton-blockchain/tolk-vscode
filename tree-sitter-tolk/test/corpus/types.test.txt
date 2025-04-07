@@ -93,5 +93,48 @@ global g: coins?;
   (global_var_declaration
     (identifier)
     (nullable_type
-      (type_identifier)))
+      (primitive_type)))
+)
+
+===
+Parse union types
+===
+
+global g: int32 | int64;
+global g: SomeStruct | coins? | (int|int);
+
+---
+(source_file
+  (global_var_declaration
+    (identifier)
+    (union_type
+      (type_identifier) (type_identifier)))
+  (global_var_declaration
+    (identifier)
+    (union_type
+      (type_identifier)
+      (union_type
+        (nullable_type (primitive_type))
+        (parenthesized_type (union_type (primitive_type) (primitive_type))))))
+)
+
+===
+Parse type aliases
+===
+
+type MInt = int;
+type s = (int, string | bool?);
+
+---
+(source_file
+  (type_alias_declaration
+    (identifier)
+    (primitive_type))
+  (type_alias_declaration
+    (identifier)
+    (tensor_type
+      (primitive_type)
+      (union_type
+        (type_identifier)
+        (nullable_type (primitive_type)))))
 )

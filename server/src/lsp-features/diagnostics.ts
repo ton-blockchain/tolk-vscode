@@ -94,15 +94,7 @@ class TreeVisitor {
     if (node.isMissing()) {
       this.diagnostics.error('Missing ' + node.type, node)
     } else if (node.hasError() && node.children.every(a => !a.hasError())) {
-      // when a user types new code and hasn't typed the closing semicolon yet,
-      // all this node is detected an error (since it's invalid syntactically)
-      // this leads to an effect that you always type "in the read zone"
-      // here I try to heuristically detect "missing last comma" not to highlight a whole node
-      if (node.nextSibling?.type === '}' && !node.text.endsWith(';')) {
-        this.diagnostics.errorAt('Missing `;`', lsp.Range.create(node.endPosition.row, node.endPosition.column, node.endPosition.row, node.endPosition.column + 1))
-      } else {
-        this.diagnostics.error('Syntax error', node)
-      }
+      this.diagnostics.error('Syntax error', node)
     }
 
     if (this.isExperimentalDiagnostics && node.type === 'identifier' && TreeVisitor.isInsideBlockStatement(node)) {

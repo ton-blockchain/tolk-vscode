@@ -124,9 +124,9 @@ fun f2(): int { val res$2 = 1 + -2 + f() - 3 << 4 * - - - 15; }
   expect(rootNode.hasError()).toBeFalsy()
   let f1_body = rootNode.firstChild!.childForFieldName('body')!
   let f2_body = rootNode.lastChild!.childForFieldName('body')!
-  let f1_expr = f1_body.child(1)!.child(4)!
-  let f2_expr = f2_body.child(1)!.child(4)!
-  expect(f1_expr.children.map(c => c.text)).toEqual(f2_expr.children.map(c => c.text))
+  let f1_expr = f1_body.child(1)!.child(3)!
+  let f2_expr = f2_body.child(1)!.child(3)!
+  expect(f1_expr.children.map(c => c.text)).toEqual(f2_expr.children.map(c => c.text.replace(/\s/g,'')))
 })
 
 it('should parse identifiers in backticks', () => {
@@ -156,23 +156,29 @@ it('should parse type hints', () => {
 global g: (int)->Something; 
 fun f<T>(v: T,): (T, tuple?, [bool]) {}
 fun thro(): never{}
+fun y(): int|slice|SomeStruct{}
 `)
   let gNode = rootNode.firstNamedChild!
   let fNode = gNode.nextNamedSibling!
   let tNode = fNode.nextNamedSibling!
+  let yNode = tNode.nextNamedSibling!
   expect(gNode.type).toBe('global_var_declaration')
   expect(fNode.type).toBe('function_declaration')
+  expect(yNode.type).toBe('function_declaration')
   let gType = extractType(gNode.childForFieldName('type'))
   let fType = extractType(fNode.childForFieldName('return_type'))
   let vType = extractType(fNode.childForFieldName('parameters')!.descendantsOfType('parameter_declaration')[0]!.childForFieldName('type'))
   let tType = extractType(tNode.childForFieldName('return_type'))
+  let yType = extractType(yNode.childForFieldName('return_type'))
   expect(gType.kind === 'function' && gType.parameters.length === 1 && gType.returns.kind === 'type_identifier').toBeTruthy()
   expect(fType.kind === 'tensor' && fType.items.length === 3 && fType.items[1].kind === 'nullable' && fType.items[1].inner.kind === 'primitive' && fType.items[2].kind === 'tuple' && fType.items[2].items[0].kind === 'primitive').toBeTruthy()
   expect(vType.kind === 'type_identifier' && vType.name === 'T').toBeTruthy()
   expect(tType.kind).toBe('never')
+  expect(yType.kind).toBe('union')
   expect(stringifyType(gType)).toBe('Something')
   expect(stringifyType(fType)).toBe('(T, tuple?, [bool])')
   expect(stringifyType(tType)).toBe('never')
+  expect(stringifyType(yType)).toBe('int | slice | SomeStruct')
 })
 
 it('should parse indexed access', () => {
@@ -183,4 +189,19 @@ it('should parse indexed access', () => {
   expect(f_body.namedChild(0)!.namedChild(0)!.childForFieldName('field')!.text).toBe('0')
   expect(f_body.namedChild(1)!.namedChild(0)!.type).toBe('dot_access')
   expect(f_body.namedChild(1)!.namedChild(0)!.childForFieldName('field')!.text).toBe('id')
+})
+
+it('should parse match expression', () => {
+  let rootNode = parseTolkSource('const a = match(x) { 1 => {}, int => 2, else => return 0 }');
+  let match_expr = rootNode.firstChild!.childForFieldName('value')!
+  expect(match_expr.type).toBe('match_expression')
+  expect(match_expr.childForFieldName('expr')!.type).toBe('identifier')
+  let arms = match_expr.children.filter(k => k.type === 'match_arm')
+  expect(arms.length).toBe(3)
+  expect(arms[0].childForFieldName('pattern_expr')!.type).toBe('number_literal')
+  expect(arms[0].childForFieldName('body')!.type).toBe('block_statement')
+  expect(arms[1].childForFieldName('pattern_type')!.type).toBe('primitive_type')
+  expect(arms[1].childForFieldName('body')!.type).toBe('number_literal')
+  expect(arms[2].childForFieldName('pattern_else')!.type).toBe('else')
+  expect(arms[2].childForFieldName('body')!.type).toBe('return')
 })
