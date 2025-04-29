@@ -10,7 +10,7 @@ import * as qf from './quickfixes';
 import { detectTolkLanguageCapabilities, TolkChangesByLevel } from '../language-level';
 import { TolkSdkMapping } from "../tolk-sdk-mapping";
 import { TolkCompilerSDK, TolkCompilerVersion } from "../config-scheme";
-import { extractNameFromNode, TolkDocumentSymbol } from './lsp-document-symbols'
+import { extractNameFromNode, isNodeObjectField, TolkDocumentSymbol } from './lsp-document-symbols'
 import { findLocalVariables } from './find-locals'
 
 
@@ -95,6 +95,13 @@ class TreeVisitor {
       this.diagnostics.error('Missing ' + node.type, node)
     } else if (node.hasError() && node.children.every(a => !a.hasError())) {
       this.diagnostics.error('Syntax error', node)
+    }
+
+    if (node.type === 'identifier' && node.parent!.type === 'object_field') {
+      return
+    }
+    if (isNodeObjectField(node)) {
+      return null   // don't validate object fields now
     }
 
     if (this.isExperimentalDiagnostics && node.type === 'identifier' && TreeVisitor.isInsideBlockStatement(node)) {
