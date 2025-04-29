@@ -25,6 +25,7 @@ const TOLK_GRAMMAR = {
     $.global_var_declaration,
     $.constant_declaration,
     $.type_alias_declaration,
+    $.struct_declaration,
     $.function_declaration,
     $.get_method_declaration,
     $.empty_statement,
@@ -64,9 +65,30 @@ const TOLK_GRAMMAR = {
   type_alias_declaration: $ => seq(
     'type',
     field('name', $.identifier),
+    optional(field('genericTs', $.genericT_list)),
     '=',
     field('underlying_type', $._type_hint),
     ';'
+  ),
+
+  struct_declaration: $ => seq(
+    optional(field('annotations', $.annotation_list)),
+    'struct',
+    field('name', $.identifier),
+    optional(field('genericTs', $.genericT_list)),
+    '{',
+    optional(seq($.struct_field, repeat(seq(choice(',', ';'), $.struct_field)))),
+    optional(choice(',', ';')),
+    '}',
+  ),
+  struct_field: $ => seq(
+    field('name', $.identifier),
+    ':',
+    field('type', $._type_hint),
+    optional(seq(
+      '=',
+      field('default', $._expression)
+    )),
   ),
 
   // ----------------------------------------------------------
@@ -75,6 +97,16 @@ const TOLK_GRAMMAR = {
   function_declaration: $ => seq(
     optional(field('annotations', $.annotation_list)),
     'fun',
+    optional(seq(
+      // todo a real grammar should be `fun (optional <type_hint>.)name...`, but I had no luck to make it work
+      // now, tree-sitter understands cases needed in practice, but `fun (int, Wrapper<T?>).method()` — no
+      field('receiver_type', seq(
+        alias($.identifier, $.type_identifier),
+        optional($.genericT_list),
+        optional('?')
+      )),
+      '.'
+    )),
     field('name', $.identifier),
     optional(field('genericTs', $.genericT_list)),
     field('parameters', $.parameter_list),
@@ -104,7 +136,7 @@ const TOLK_GRAMMAR = {
   annotation_list: $ => repeat1($.annotation),
   annotation: $ => seq(
     '@',
-    field('name', $.annotation_name),
+    field('name', $.identifier),
     optional(seq(
       '(',
       repeat($._expression),
@@ -112,12 +144,18 @@ const TOLK_GRAMMAR = {
       ')'
     ))
   ),
-  annotation_name: $ => /\w+/,
 
   genericT_list: $ => seq(
     '<',
-    commaSep($.identifier),
+    commaSep($.genericT_item),
     '>'
+  ),
+  genericT_item: $ => seq(
+    field('nameT', $.identifier),
+    optional(seq(
+      '=',
+      field('default', $._type_hint)
+    ))
   ),
 
   parameter_list: $ => seq(
@@ -197,12 +235,12 @@ const TOLK_GRAMMAR = {
     )
   ),
 
-  block_statement: $ => seq(
+  block_statement: $ => prec(100, seq(
     '{',
     repeat($._statement),
     optional($._statement_require_semicolon_unless_last),
     '}'
-  ),
+  )),
 
   return_statement: $ => seq(
     'return',
@@ -299,6 +337,7 @@ const TOLK_GRAMMAR = {
     $.generic_instantiation,
     $.parenthesized_expression,
     $.match_expression,
+    $.object_literal,
     $.tensor_expression,
     $.typed_tuple,
     $.number_literal,
@@ -419,6 +458,24 @@ const TOLK_GRAMMAR = {
     optional(','),  // todo now `match (...) { 1 => 1 2 => 2 }` is ok, but actually comma is required
   ),
 
+  object_literal: $ => prec(99, seq(
+    optional(seq(
+      field('struct', $.identifier),
+      // todo had no luck to make syntax `Container<int> { ... }` work, only `Container { ... }`
+      // optional(field('instantiationTs', $.instantiationT_list))
+    )),
+    '{',
+    commaSep($.object_field),
+    '}'
+  )),
+  object_field: $ => seq(
+    field('name', $.identifier),
+    optional(seq(
+     ':',
+     field('init_val', $._expression)
+    ))
+  ),
+
   parenthesized_expression: $ => seq('(', $._expression, optional(','), ')'),
   tensor_expression: $ => choice(seq('(', ')'), seq('(', commaSep2($._expression), optional(','), ')')),
   typed_tuple: $ => seq('[', commaSep($._expression), optional(','), ']'),
@@ -432,6 +489,7 @@ const TOLK_GRAMMAR = {
     $.self_type,
     $.never_type,
     alias($.identifier, $.type_identifier),
+    $.type_instantiatedTs,
     $.tensor_type,
     $.tuple_type,
     $.parenthesized_type,
@@ -444,6 +502,7 @@ const TOLK_GRAMMAR = {
   void_type: $ => prec(103, 'void'),
   self_type: $ => prec(103, 'self'),
   never_type: $ => prec(103, 'never'),
+  type_instantiatedTs: $ => prec(104, seq(alias($.identifier, $.type_identifier), $.instantiationT_list)),
 
   tensor_type: $ => prec(103, choice(seq('(', ')'), seq('(', commaSep2($._type_hint), ')'))),
   tuple_type: $ => prec(103, seq('[', commaSep($._type_hint), ']')),
@@ -481,6 +540,7 @@ module.exports = grammar({
   conflicts: $ => [
     [$.instantiationT_list, $._brackets_lt_gt],
     [$._comparison_lt_gt, $.binary_operator, $.generic_instantiation],
+    [$._expression, $.object_field],
   ],
 
   extras: $ => [

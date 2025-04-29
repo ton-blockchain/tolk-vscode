@@ -1,0 +1,187 @@
+===
+Struct 1
+===
+
+struct A {
+    f: int,
+    g: int = 0;
+    b: slice | string = (1,2,[3]),
+}
+
+---
+(source_file
+  (struct_declaration
+    (identifier)
+    (struct_field
+      (identifier)
+      (primitive_type))
+    (struct_field
+      (identifier)
+      (primitive_type)
+      (number_literal))
+    (struct_field
+      (identifier)
+      (union_type (primitive_type) (type_identifier))
+      (tensor_expression (number_literal) (number_literal) (typed_tuple (number_literal))))
+  )
+)
+
+===
+Generic struct
+===
+
+struct Container<T> {
+    item: T;
+}
+
+---
+(source_file
+  (struct_declaration
+    (identifier)
+    (genericT_list
+      (genericT_item (identifier)))
+    (struct_field
+      (identifier)
+      (type_identifier))
+  )
+)
+
+===
+Generic struct with default T
+===
+
+struct Container<T = null> {
+    item: T? = null;
+}
+
+---
+(source_file
+  (struct_declaration
+    (identifier)
+    (genericT_list
+      (genericT_item (identifier) (type_identifier)))
+    (struct_field
+      (identifier)
+      (nullable_type (type_identifier))
+      (null_literal))
+  )
+)
+
+===
+Create object
+===
+
+const a = { x: 10 };
+const a = { x: 10, y: null + 1 };
+const a = Point { x, y };
+const a = { x };
+const a = {};
+struct Point { x: Point = { x: 0 } }
+
+---
+(source_file
+  (constant_declaration
+    (identifier)
+    (object_literal
+      (object_field (identifier) (number_literal))))
+  (constant_declaration
+    (identifier)
+    (object_literal
+      (object_field (identifier) (number_literal))
+      (object_field (identifier) (binary_operator (null_literal) (number_literal)))))
+  (constant_declaration
+    (identifier)
+    (object_literal
+      (identifier)
+      (object_field (identifier))
+      (object_field (identifier))))
+  (constant_declaration
+    (identifier)
+    (object_literal
+      (object_field (identifier))))
+  (constant_declaration
+    (identifier)
+    (object_literal))
+  (struct_declaration
+    (identifier)
+    (struct_field
+      (identifier)
+      (type_identifier)
+      (object_literal
+        (object_field (identifier) (number_literal)))))
+)
+
+===
+Create an object with explicit struct
+===
+
+const a = Point { x: 10 };
+// todo const a = Container<slice> { item: "" };
+
+---
+(source_file
+  (constant_declaration
+    name: (identifier)
+    value: (object_literal
+      struct: (identifier)
+      (object_field name: (identifier) init_val: (number_literal))))
+  (comment)
+)
+
+===
+Object as expression
+===
+
+fun main() {
+  { x: 10 };
+  Point {};
+  Point { x };
+  {};
+}
+
+---
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (block_statement
+      (expression_statement
+        (object_literal
+          (object_field (identifier) (number_literal))))
+      (expression_statement
+        (object_literal
+          (identifier)))
+      (expression_statement
+        (object_literal
+          (identifier)
+          (object_field (identifier))))
+      (block_statement)
+      (empty_statement)))
+)
+
+===
+Conflicts between object and block
+===
+
+fun main() {
+  { x };
+  { x; };
+  {};
+}
+
+---
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (block_statement
+      (expression_statement
+        (object_literal
+          (object_field (identifier))))
+      (block_statement
+        (expression_statement
+          (identifier)))
+      (empty_statement)
+      (block_statement)
+      (empty_statement)))
+)

@@ -1,0 +1,140 @@
+===
+Simple functions
+===
+
+fun beginCell(): builder {}
+fun doSome(x: int) {}
+
+---
+(source_file
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    return_type: (primitive_type)
+    body: (block_statement))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration
+        name: (identifier)
+        type: (primitive_type)))
+    body: (block_statement))
+)
+
+===
+Methods
+===
+
+fun tuple.get(self) {}
+fun builder?.store(mutate self, arg: int) {}
+fun Point.create() {}
+// todo fun (int, int).getLast(self) {}
+
+---
+(source_file
+  (function_declaration
+    receiver_type: (type_identifier)
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration name: (identifier)))
+    body: (block_statement))
+  (function_declaration
+    receiver_type: (type_identifier)
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration name: (identifier))
+      (parameter_declaration name: (identifier) type: (primitive_type)))
+    body: (block_statement))
+  (function_declaration
+    receiver_type: (type_identifier)
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block_statement))
+  (comment)
+)
+
+===
+Methods for generics
+===
+
+fun Container<T>.getItem() {}
+fun Pair<A, B>.createFrom<U, V>(f: U): Pair<A, B> {}
+// todo fun Wrapper<T?>.createFromNull(): Wrapper<T?>
+
+---
+(source_file
+  (function_declaration
+    (type_identifier)
+    (genericT_list
+      (genericT_item (identifier)))
+    (identifier)
+    (parameter_list)
+    (block_statement))
+  (function_declaration
+    (type_identifier)
+    (genericT_list
+      (genericT_item (identifier))
+      (genericT_item (identifier)))
+    (identifier)
+    (genericT_list
+      (genericT_item (identifier))
+      (genericT_item (identifier)))
+    (parameter_list
+      (parameter_declaration
+        (identifier)
+        (type_identifier)))
+    (type_instantiatedTs
+      (type_identifier)
+      (instantiationT_list
+        (type_identifier)
+        (type_identifier)))
+    (block_statement))
+  (comment)
+)
+
+===
+Method with annotation
+===
+
+@deprecated
+fun Message?.output(self): self {}
+
+---
+(source_file
+  (function_declaration
+    annotations: (annotation_list
+      (annotation name: (identifier)))
+    receiver_type: (type_identifier)
+    name: (identifier)
+    parameters: (parameter_list
+      (parameter_declaration name: (identifier)))
+    return_type: (self_type)
+    body: (block_statement))
+)
+
+===
+Function with generic parameters
+===
+
+fun f(a: Container<int>, b: Message<Container<never>>) {}
+
+---
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list
+      (parameter_declaration
+        (identifier)
+        (type_instantiatedTs
+          (type_identifier)
+          (instantiationT_list (primitive_type))))
+      (parameter_declaration
+        (identifier)
+        (type_instantiatedTs
+          (type_identifier)
+          (instantiationT_list
+            (type_instantiatedTs
+              (type_identifier)
+              (instantiationT_list (never_type)))))))
+    (block_statement))
+)

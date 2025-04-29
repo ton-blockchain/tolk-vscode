@@ -8,7 +8,7 @@ import { SymbolIndex } from './symbol-index';
 import { ILspHandler } from '../connection'
 import { findLocalVariables, TolkLocalVariable } from './find-locals'
 import { stringifyType } from './type-inference'
-import { extractNameFromNode, TolkDocumentSymbol } from './lsp-document-symbols'
+import { extractNameFromNode, isNodeObjectField, TolkDocumentSymbol } from './lsp-document-symbols'
 
 export class HoverLspHandler implements ILspHandler {
   constructor(
@@ -39,10 +39,17 @@ export class HoverLspHandler implements ILspHandler {
     if (hoverNode.type === 'identifier') {
       return this.provideHoverForIdentifier(documentUri, hoverNode, tree.rootNode, cursorPosition)
     }
+    if (hoverNode.type === 'type_identifier') {
+      return this.provideHoverForCustomType(documentUri, hoverNode, tree.rootNode, cursorPosition)
+    }
     return null
   }
 
   private async provideHoverForIdentifier(documentUri: string, hoverNode: Parser.SyntaxNode, rootNode: Parser.SyntaxNode, cursorPosition: Parser.Point): Promise<lsp.Hover | null> {
+    if (isNodeObjectField(hoverNode)) {
+      return null   // don't show anything for fields now
+    }
+
     const hoveredName = extractNameFromNode(hoverNode)
 
     // first, maybe the user is hovering a local variable / parameter
@@ -61,8 +68,8 @@ export class HoverLspHandler implements ILspHandler {
     const document = await this._documents.retrieve(documentUri)
     const imports = await this._directives.getImports(document!)
     const globalSymbols = await this._symbols.getGlobalSymbols([documentUri, ...imports])
-    const symbol = globalSymbols.find(s => s.name === hoveredName)
-    if (!symbol) {
+    const symbols = globalSymbols.filter(s => s.name === hoveredName)
+    if (!symbols.length) {
       return null;
     }
 
@@ -70,7 +77,27 @@ export class HoverLspHandler implements ILspHandler {
       range: asLspRange(hoverNode),
       contents: {
         kind: 'plaintext',
-        value: this.stringifyGlobalSymbol(symbol)
+        value: symbols.length > 1 ? `${symbols.length} symbols` : this.stringifyGlobalSymbol(symbols[0])
+      }
+    }
+  }
+
+  private async provideHoverForCustomType(documentUri: string, hoverNode: Parser.SyntaxNode, rootNode: Parser.SyntaxNode, cursorPosition: Parser.Point): Promise<lsp.Hover | null> {
+    const hoveredName = extractNameFromNode(hoverNode)
+
+    const document = await this._documents.retrieve(documentUri)
+    const imports = await this._directives.getImports(document!)
+    const globalSymbols = await this._symbols.getGlobalSymbols([documentUri, ...imports])
+    const symbols = globalSymbols.filter(s => s.name === hoveredName && (s.lspSymbol.kind === lsp.SymbolKind.Struct || s.lspSymbol.kind === lsp.SymbolKind.Interface))
+    if (!symbols.length) {
+      return null;
+    }
+
+    return {
+      range: asLspRange(hoverNode),
+      contents: {
+        kind: 'plaintext',
+        value: symbols.length > 1 ? `${symbols.length} symbols` : this.stringifyGlobalSymbol(symbols[0])
       }
     }
   }
@@ -91,8 +118,13 @@ export class HoverLspHandler implements ILspHandler {
         return 'global ' + symbol.name + ': ' + stringifyType(symbol.type)
       case lsp.SymbolKind.Function:
         let strFun = symbol.type.kind === 'function' && symbol.type.isGetMethod ? 'get ' : 'fun '
+        let strRecv = symbol.type.kind === 'function' && symbol.type.receiver ? stringifyType(symbol.type.receiver) + "." : ""
         let strArgs = symbol.type.kind === 'function' && symbol.type.parameters.map(a => a.name).join(', ')
-        return strFun + symbol.name + '(' + strArgs + '): ' + stringifyType(symbol.type)
+        return strFun + strRecv + symbol.name + '(' + strArgs + '): ' + stringifyType(symbol.type)
+      case lsp.SymbolKind.Interface:
+        return 'type ' + symbol.name
+      case lsp.SymbolKind.Struct:
+        return 'struct ' + symbol.name
       default:
         return symbol.name
     }

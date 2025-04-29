@@ -124,6 +124,8 @@ Parse type aliases
 
 type MInt = int;
 type s = (int, string | bool?);
+type F<T> = int;
+type F<T> = Container<T>;
 
 ---
 (source_file
@@ -137,4 +139,46 @@ type s = (int, string | bool?);
       (union_type
         (type_identifier)
         (nullable_type (primitive_type)))))
+  (type_alias_declaration
+    (identifier)
+    (genericT_list (genericT_item (identifier)))
+    (primitive_type))
+  (type_alias_declaration
+    (identifier)
+    (genericT_list (genericT_item (identifier)))
+    (type_instantiatedTs
+      (type_identifier) (instantiationT_list (type_identifier))))
+)
+
+===
+Parse generics
+===
+
+global a: Container<slice>;
+global b: Container < Container < slice > >;
+global c: Container<Container<slice>>;
+
+---
+(source_file
+  (global_var_declaration
+    (identifier)
+    (type_instantiatedTs
+      (type_identifier)
+      (instantiationT_list (primitive_type))))
+  (global_var_declaration
+    (identifier)
+    (type_instantiatedTs
+      (type_identifier)
+      (instantiationT_list
+        (type_instantiatedTs
+          (type_identifier)
+          (instantiationT_list (primitive_type))))))
+  (global_var_declaration
+    (identifier)
+    (type_instantiatedTs
+      (type_identifier)
+      (instantiationT_list
+        (type_instantiatedTs
+          (type_identifier)
+          (instantiationT_list (primitive_type))))))
 )

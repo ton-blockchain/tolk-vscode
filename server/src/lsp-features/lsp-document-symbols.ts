@@ -36,6 +36,12 @@ export function extractNameFromNode(nameNode: Parser.SyntaxNode): string {
   return name[0] === '`' ? name.substring(1, name.length - 1) : name
 }
 
+export function isNodeObjectField(node: Parser.SyntaxNode): boolean {
+  return node.type === 'identifier' && node.parent!.type === 'dot_access' &&
+         node.id === node.parent!.childForFieldName('field')?.id &&
+         node.parent!.parent!.type !== 'function_call'
+}
+
 export type TolkDocumentSymbol = {
   name: string
   type: TolkType
@@ -85,6 +91,22 @@ export function getDocumentSymbols(tree: Parser.Tree): TolkDocumentSymbol[] {
           name: name,
           type: inferFunctionType(node),
           lspSymbol: lsp.DocumentSymbol.create(name, typeHint?.text, lsp.SymbolKind.Function, asLspRange(node), asLspRange(nameNode), lspChildren ?? [])
+        })
+        break
+      }
+      case 'type_alias_declaration': {
+        result.push({
+          name: name,
+          type: { kind: 'type_identifier', name },
+          lspSymbol: lsp.DocumentSymbol.create(name, "type", lsp.SymbolKind.Interface, asLspRange(node), asLspRange(nameNode))
+        })
+        break
+      }
+      case 'struct_declaration': {
+        result.push({
+          name: name,
+          type: { kind: 'type_identifier', name },
+          lspSymbol: lsp.DocumentSymbol.create(name, "struct", lsp.SymbolKind.Struct, asLspRange(node), asLspRange(nameNode))
         })
         break
       }

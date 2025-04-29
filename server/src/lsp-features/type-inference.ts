@@ -39,6 +39,7 @@ type NullableType = {
 
 export type FunctionType = {
   kind: 'function',
+  receiver: TolkType | null,
   parameters: {
     name?: string,
     type: TolkType
@@ -135,6 +136,7 @@ export function extractType(typeHint: Parser.SyntaxNode | null): TolkType {
       }
       return {
         kind: 'function',
+        receiver: null,
         parameters: lhs.namedChildren.map(n => ({ type: extractType(n) })),
         returns: extractType(rhs),
         isGetMethod: false
@@ -147,8 +149,10 @@ export function extractType(typeHint: Parser.SyntaxNode | null): TolkType {
 
 export function inferFunctionType(node: Parser.SyntaxNode): TolkType {
   if (node.type === 'function_declaration' || node.type === 'get_method_declaration') {
+    let receiverNode = node.childForFieldName('receiver_type')
     return {
       kind: 'function',
+      receiver: receiverNode ? extractType(receiverNode) : null,
       parameters: node.descendantsOfType('parameter_declaration').map(arg => ({
         name: arg.childForFieldName('name')?.text,
         type: extractType(arg.childForFieldName('type'))
