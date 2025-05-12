@@ -54,6 +54,9 @@ export class CompletionLspHandler implements ILspHandler {
     if (cursorNode.type === 'string_literal' && cursorNode.parent && cursorNode.parent.type === 'import_directive') {
       return this.provideCompletionInImportDirective(params, cursorNode)
     }
+    if (cursorNode.type === 'type_identifier') {
+      return []
+    }
 
     let isFunctionApplication = params.context?.triggerCharacter === '.'
     let result: lsp.CompletionItem[] = []
@@ -64,6 +67,12 @@ export class CompletionLspHandler implements ILspHandler {
         let item = lsp.CompletionItem.create(v.name)
         item.kind = lsp.CompletionItemKind.Variable
         item.detail = stringifyType(v.type)
+        return item
+      }))
+      result.push(...['contract', 'blockchain', 'random'].map(structName => {
+        let item = lsp.CompletionItem.create(structName)
+        item.kind = lsp.CompletionItemKind.Variable
+        item.detail = 'struct'
         return item
       }))
     }
