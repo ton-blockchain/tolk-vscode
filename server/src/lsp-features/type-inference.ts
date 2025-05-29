@@ -2,7 +2,7 @@ import * as Parser from 'web-tree-sitter';
 
 type PrimitiveType = {
   kind: 'primitive',
-  name: 'int' | 'bool' | 'cell' | 'slice' | 'builder' | 'continuation' | 'tuple' | 'coins'
+  name: 'int' | 'bool' | 'cell' | 'slice' | 'builder' | 'continuation' | 'tuple' | 'coins' | 'address'
 }
 
 type VoidType = {

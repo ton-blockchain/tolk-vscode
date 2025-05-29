@@ -156,7 +156,7 @@ it('should parse type hints', () => {
 global g: (int)->Something; 
 fun f<T>(v: T,): (T, tuple?, [bool]) {}
 fun thro(): never{}
-fun y(): int|slice|SomeStruct{}
+fun y(): address|slice|SomeStruct{}
 `)
   let gNode = rootNode.firstNamedChild!
   let fNode = gNode.nextNamedSibling!
@@ -178,7 +178,7 @@ fun y(): int|slice|SomeStruct{}
   expect(stringifyType(gType)).toBe('Something')
   expect(stringifyType(fType)).toBe('(T, tuple?, [bool])')
   expect(stringifyType(tType)).toBe('never')
-  expect(stringifyType(yType)).toBe('int | slice | SomeStruct')
+  expect(stringifyType(yType)).toBe('address | slice | SomeStruct')
 })
 
 it('should parse indexed access', () => {
@@ -204,4 +204,19 @@ it('should parse match expression', () => {
   expect(arms[1].childForFieldName('body')!.type).toBe('number_literal')
   expect(arms[2].childForFieldName('pattern_else')!.type).toBe('else')
   expect(arms[2].childForFieldName('body')!.type).toBe('return')
+})
+
+it('should parse struct pack prefix', () => {
+  let rootNode = parseTolkSource('struct (0xF0) MyMsg {}');
+  let struct_decl = rootNode.firstChild!
+  expect(struct_decl.childCount).toBe(7)
+  expect(struct_decl.childForFieldName('pack_prefix')).not.toBeNull()
+  expect(struct_decl.childForFieldName('pack_prefix')!.text).toBe('0xF0')
+})
+
+it('should parse function default parameters', () => {
+  let rootNode = parseTolkSource('fun f(x: bool = false) {}');
+  let f_params = rootNode.firstChild!.childForFieldName('parameters')!
+  let first_param = f_params.firstNamedChild!
+  expect(first_param.childForFieldName('default_value')!.text).toBe("false")
 })

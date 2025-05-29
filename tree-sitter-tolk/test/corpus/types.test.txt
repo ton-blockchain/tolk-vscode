@@ -6,6 +6,7 @@ global g: int;
 global g: (slice, int);
 global g: [slice, (tuple)];
 global g: never;
+global g: address;
 
 ---
 (source_file
@@ -21,6 +22,9 @@ global g: never;
   (global_var_declaration
     (identifier)
     (never_type))
+  (global_var_declaration
+    (identifier)
+    (primitive_type))
 )
 
 ===
@@ -100,7 +104,7 @@ global g: coins?;
 Parse union types
 ===
 
-global g: int32 | int64;
+global g: int32 | int64 |;
 global g: SomeStruct | coins? | (int|int);
 
 ---

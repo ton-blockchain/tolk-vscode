@@ -74,6 +74,11 @@ const TOLK_GRAMMAR = {
   struct_declaration: $ => seq(
     optional(field('annotations', $.annotation_list)),
     'struct',
+    optional(seq(
+      '(',
+      field('pack_prefix', $.number_literal),
+      ')'
+    )),
     field('name', $.identifier),
     optional(field('genericTs', $.genericT_list)),
     '{',
@@ -170,6 +175,10 @@ const TOLK_GRAMMAR = {
     optional(seq(
       ':',
       field('type', $._type_hint)
+    )),
+    optional(seq(
+      '=',
+      field('default_value', $._expression)
     ))
   ),
 
@@ -220,8 +229,10 @@ const TOLK_GRAMMAR = {
   local_vars_declaration: $ => seq(
     choice('var', 'val'),
     field('lhs', $.var_declaration_lhs),
-    '=',
-    field('assigned_val', $._expression)
+    optional(seq(
+      '=',
+      field('assigned_val', $._expression)
+    ))
   ),
   var_declaration_lhs: $ => choice(
     seq('(', commaSep1($.var_declaration_lhs), ')'),
@@ -466,6 +477,7 @@ const TOLK_GRAMMAR = {
     )),
     '{',
     commaSep($.object_field),
+    optional(','),
     '}'
   )),
   object_field: $ => seq(
@@ -498,7 +510,7 @@ const TOLK_GRAMMAR = {
     $.union_type,
   )),
 
-  primitive_type: $ => prec(103, choice('int', 'bool', 'cell', 'slice', 'builder', 'continuation', 'tuple', 'coins')),
+  primitive_type: $ => prec(103, choice('int', 'bool', 'cell', 'slice', 'builder', 'continuation', 'tuple', 'coins', 'address')),
   void_type: $ => prec(103, 'void'),
   self_type: $ => prec(103, 'self'),
   never_type: $ => prec(103, 'never'),
@@ -510,7 +522,7 @@ const TOLK_GRAMMAR = {
 
   fun_callable_type: $ => prec.right(101, seq(field('param_types', $._type_hint), '->', field('return_type', $._type_hint))),
   nullable_type: $ => prec.right(110, seq(field('inner', $._type_hint), '?')),
-  union_type: $ => prec.right(102, seq(field('lhs', $._type_hint),'|', field('rhs', $._type_hint))),
+  union_type: $ => prec.right(102, seq(field('lhs', $._type_hint),'|', field('rhs', $._type_hint), optional('|'))),
 
   // ----------------------------------------------------------
   // common constructions

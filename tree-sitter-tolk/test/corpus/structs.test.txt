@@ -185,3 +185,29 @@ fun main() {
       (block_statement)
       (empty_statement)))
 )
+
+===
+Call a function with options literal
+===
+
+fun main(o: Options = {}) {
+    MyMsg.fromSlice(s, { throwIfOpcodeDoesNotMatch: 0xFFFF, })
+}
+
+---
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list
+      (parameter_declaration (identifier) (type_identifier) (object_literal)))
+    (block_statement
+      (expression_statement
+        (function_call
+          (dot_access (identifier) (identifier))
+          (argument_list
+            (call_argument
+              (identifier))
+            (call_argument
+              (object_literal
+                (object_field (identifier) (number_literal)))))))))
+)
