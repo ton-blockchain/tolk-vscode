@@ -140,3 +140,23 @@ fun main() {
     (argument_list))
   )
 )))
+
+===
+Lateinit variable
+===
+
+fun main() {
+    var x: int;
+    x = 10;
+}
+---
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (block_statement
+      (local_vars_declaration
+        (var_declaration_lhs (identifier) (primitive_type)))
+      (expression_statement
+        (assignment (identifier) (number_literal)))))
+)

@@ -138,3 +138,20 @@ fun f(a: Container<int>, b: Message<Container<never>>) {}
               (instantiationT_list (never_type)))))))
     (block_statement))
 )
+
+===
+Default parameters
+===
+
+fun inc(x: int, by: int = 1+C) {}
+
+---
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list
+      (parameter_declaration (identifier) (primitive_type))
+      (parameter_declaration (identifier) (primitive_type)
+        (binary_operator (number_literal) (identifier))))
+    (block_statement))
+)

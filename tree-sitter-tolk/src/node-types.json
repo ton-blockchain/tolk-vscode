@@ -2575,7 +2575,7 @@
     "fields": {
       "assigned_val": {
         "multiple": false,
-        "required": true,
+        "required": false,
         "types": [
           {
             "type": "assignment",
@@ -3383,6 +3383,100 @@
     "type": "parameter_declaration",
     "named": true,
     "fields": {
+      "default_value": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "assignment",
+            "named": true
+          },
+          {
+            "type": "binary_operator",
+            "named": true
+          },
+          {
+            "type": "boolean_literal",
+            "named": true
+          },
+          {
+            "type": "cast_as_operator",
+            "named": true
+          },
+          {
+            "type": "dot_access",
+            "named": true
+          },
+          {
+            "type": "function_call",
+            "named": true
+          },
+          {
+            "type": "generic_instantiation",
+            "named": true
+          },
+          {
+            "type": "identifier",
+            "named": true
+          },
+          {
+            "type": "is_type_operator",
+            "named": true
+          },
+          {
+            "type": "match_expression",
+            "named": true
+          },
+          {
+            "type": "not_null_operator",
+            "named": true
+          },
+          {
+            "type": "null_literal",
+            "named": true
+          },
+          {
+            "type": "number_literal",
+            "named": true
+          },
+          {
+            "type": "object_literal",
+            "named": true
+          },
+          {
+            "type": "parenthesized_expression",
+            "named": true
+          },
+          {
+            "type": "set_assignment",
+            "named": true
+          },
+          {
+            "type": "string_literal",
+            "named": true
+          },
+          {
+            "type": "tensor_expression",
+            "named": true
+          },
+          {
+            "type": "ternary_operator",
+            "named": true
+          },
+          {
+            "type": "typed_tuple",
+            "named": true
+          },
+          {
+            "type": "unary_operator",
+            "named": true
+          },
+          {
+            "type": "underscore",
+            "named": true
+          }
+        ]
+      },
       "name": {
         "multiple": false,
         "required": true,
@@ -4065,6 +4159,16 @@
         "types": [
           {
             "type": "identifier",
+            "named": true
+          }
+        ]
+      },
+      "pack_prefix": {
+        "multiple": false,
+        "required": false,
+        "types": [
+          {
+            "type": "number_literal",
             "named": true
           }
         ]
@@ -5517,6 +5621,10 @@
   },
   {
     "type": "^>>",
+    "named": false
+  },
+  {
+    "type": "address",
     "named": false
   },
   {
