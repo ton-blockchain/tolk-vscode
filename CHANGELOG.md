@@ -3,6 +3,10 @@
 Historically, tolk-vscode has been cloned from [vscode-func](https://github.com/tonwhales/vscode-func)
 and completely refactored.
 
+## [0.99.0] - 2025-06-12
+
+* Sync pre-release versioning with the compiler
+
 ## [0.13.0] - 2025-05-30
 
 * Support Tolk v0.13 syntax (serialization prefixes, default parameters, lateinit variables)
