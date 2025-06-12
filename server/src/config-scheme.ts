@@ -26,7 +26,7 @@ export const defaultConfig: TolkPluginConfigScheme = {
   experimentalDiagnostics: false,
   autoDetectSDK: true,
   manualSDKSettings: {
-    tolkCompilerVersion: "0.13",
+    tolkCompilerVersion: "0.99",
     stdlibFolder: "/path/to/folder/stdlib-tolk"
   }
 }
