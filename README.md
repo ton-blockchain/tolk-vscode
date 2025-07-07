@@ -1,3 +1,13 @@
+## ⚠️ DEPRECATION NOTICE
+
+TOLK support has been moved to "TON" VS Code extension.  
+This extension (tolk-vscode) is unpublished and no longer maintained.
+
+**→ Proceed to [ton-language-server](https://github.com/ton-blockchain/ton-language-server)**
+
+*↓ The below is left for history only*
+
+
 # Tolk Language Support for VS Code
 
 **Tolk** is a new language for writing smart contracts in TON. Think of Tolk as the "next‑generation FunC".
